@@ -18,8 +18,15 @@ Many modern games feature complex dialog trees or dialog graphs, which allow a p
 
 Often, if a player chooses a certain option within such a dialog system, this has some kind of side-effect in the game world. Dialogue systems therefore need to be able to model conversation graphs as well as be able to trigger side-effects when necessary.
 
-The authors that write dialogue prose may not know how to program.
-The programmers that write dialogue graph and side-effect code may not know how to write dialogue prose.
+This means that, the people that are responsible for writing dialog prose with side-effect for game should know how to *write prose* as well as how to *program side-effects*!
+
+Unfortunately, the authors that write dialogue prose may not know how to program, and the programmers that write dialogue graph and side-effect code may not know how to write dialogue prose!
+
+This means that, if you come up with [an advanced scripting language with associated editor](https://github.com/jorisvddonk/p6014-dialogue-scripting-tool), you're likely to only attract programmers. Your dialogue prose authors will either be programmers (which may be terrible at writing dialogue prose!), or your dialogue prose authors will just continue to work inside Word documents...
+
+Maybe your dialogue prose authors are writing using a different, proprietary system instead. That might actually work out OK, or it might not, for instance if these proprietary systems use binary file formats that are difficult/impossible to merge.
+
+# The solution!
 
 Both authors and programmers, however, are likely to know Markdown or any of its modern dialects. This knowledge shared between authors and programmers is what Questmark makes use of.
 
