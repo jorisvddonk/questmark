@@ -8,6 +8,10 @@
       }
     }
 
+# Huh? What's that JSON?
+
+..you can safely ignore that JSON blob, for now.. :) Read on please!
+
 # The problem...
 
 Many modern games feature dialog trees or dialog graphs. Often, if a player chooses a certain option within such a dialog system, this has some kind of side-effect in the game world. Dialogue systems therefore need to be able to model conversation graphs as well as be able to trigger side-effects when necessary.
@@ -21,7 +25,7 @@ Questmark is a natural dialect of Markdown, allowing for the creation of dialogu
 
 Every Markdown document with properly structured headers and in-document links is a Questmark document. Questmark-specific features and code can then be added to add further interactivity and side-effects to a dialogue system.
 
-Questmark aims to make the following workflow viable, within a Git-based workflow:
+Questmark aims to make the following workflow viable:
 
 1. Authors write dialogue trees in Markdown, which can be demoed interactively, either by interpreting Markdown and compiling it as HTML, by interpreting Questmark in a simple Questmark runner, or by interpreting Questmark inside of a modern game engine.
 2. Authors, project managers, and other reviewers can add comments to provide feedback or clarification on dialogue without affecting interpreted Questmark output. These comments will *not* be visible anywhere when the dialogue tree definition is interpreted as Questmark.
@@ -29,14 +33,18 @@ Questmark aims to make the following workflow viable, within a Git-based workflo
 4. Authors can modify dialogue prose easily without affecting dialogue interactivity, if needed.
 5. Game can be shipped!
 
+Ideally, your dialogue tree Questmark files would be saved under revision control (e.g. git).
+
 # Current status of Questmark
 
 The spec is currently not written down properly, the supported featureset has not been decided on, and there is no formal test library.
+This Github repository, however, contains a proof of concept implemented in JavaScript!
 
 # Welcome
 
 Hiya!
 Welcome to the first ever Questmark quest!
+That's right, this document is actually a totally valid Questmark quest, that can be interpreted by the example proof-of-concept reference questmark interpreter!
 
 Context variable 'myvar' is {{=context.myvar}}
 
