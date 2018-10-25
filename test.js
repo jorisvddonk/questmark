@@ -24,7 +24,7 @@ var parseMD = function(text) {
   return tokens;
 }
 
-var md_src = fs.readFileSync('spec.md').toString();
+var md_src = fs.readFileSync('readme.md').toString();
 var X = parseMD(md_src);
 
 var getTokensInHeader = function(tokens, headerToSearch) {
