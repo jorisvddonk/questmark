@@ -55,7 +55,11 @@ Hiya!
 Welcome to the first ever Questmark quest!
 That's right, this document is actually a totally valid Questmark quest, that can be interpreted by the example proof-of-concept reference questmark interpreter!
 
-Context variable 'myvar' is {{=context.myvar}}
+If you're interpreting this file (readme.md) via a Questmark interpreter, and then compare it with the actual file's contents, you'll notice that there was LOTS OF TEXT that you're never going to see when interpreting via the Questmark interpreter. That's because the first section of a Questmark file contains what is called the Questmark options header. This options header defines the default entrypoint of a dialogue graph, and in this particular document's case that's the Welcome section that you're reading right now.
+
+The questmark options header is designed to be flexible and extendable, and will probably be used to specify which language version is targeted, which language features should be enabled/supported, which language extensions should be loaded (if any), which runtime scripts are required to provide functionality, and maybe even which assets should be preloaded before loading the dialogue tree (think interactive fiction that has embedded images).
+
+Questmark also supports context variables that can be modified through dialogue options! For instance, context variable 'myvar' is {{=context.myvar}}. Ain't that splendid?
 
 * [Navigate to start section!](#Start)
 * [Increment myvar!](#Welcome) `context.myvar += 1;`
