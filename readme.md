@@ -8,13 +8,15 @@
       }
     }
 
-# Huh? What's that JSON?
+# Huh? What's that JSON at the start of this file?
 
 ..you can safely ignore that JSON blob, for now.. :) Read on please!
 
 # The problem...
 
-Many modern games feature dialog trees or dialog graphs. Often, if a player chooses a certain option within such a dialog system, this has some kind of side-effect in the game world. Dialogue systems therefore need to be able to model conversation graphs as well as be able to trigger side-effects when necessary.
+Many modern games feature complex dialog trees or dialog graphs, which allow a player to interact with NPCs in the game world through dialogue that is predefined by the game's creators. Modern games implementing such systems are Skyrim, The Witcher, Deus Ex: Mankind Divided, Mass Effect: Andromeda... The list really [goes on and on](https://www.giantbomb.com/dialogue-trees/3015-77/)...
+
+Often, if a player chooses a certain option within such a dialog system, this has some kind of side-effect in the game world. Dialogue systems therefore need to be able to model conversation graphs as well as be able to trigger side-effects when necessary.
 
 The authors that write dialogue prose may not know how to program.
 The programmers that write dialogue graph and side-effect code may not know how to write dialogue prose.
