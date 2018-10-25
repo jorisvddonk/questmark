@@ -61,20 +61,46 @@ The questmark options header is designed to be flexible and extendable, and will
 
 Questmark also supports context variables that can be modified through dialogue options! For instance, context variable 'myvar' is {{=context.myvar}}. Ain't that splendid?
 
+Below are some dialogue options you'll be able to invoke. In games, these correspond with the things your character can say to the NPC you're talking with.
+
 * [Navigate to start section!](#Start)
 * [Increment myvar!](#Welcome) `context.myvar += 1;`
 * [Invoke test function!](#Test) `test()`
-* Quit
+* Quit. This will quit the dialogue in a questmark interpreter, as it is a dialogue option with no corresponding state.
 
 # Start
 
 Hi! You are now at the start section. Ain't it fun?
+
+Here is some fancy lorem ipsum text to make this section a little bigger. This will allow you to see how Questmark makes use of existing Markdown functionality to transport you to different states of a dialogue tree!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc nibh elit, lacinia eu tortor at, scelerisque vulputate leo. Cras sollicitudin tincidunt lorem ac consectetur. Sed et aliquam lacus. Vestibulum condimentum porttitor orci in interdum. Donec iaculis vitae diam id elementum. Donec sed orci augue. Curabitur scelerisque felis nec justo molestie, id placerat augue bibendum. Integer fermentum ut quam at convallis. Quisque a augue sed libero finibus viverra a at nulla.
+
+In aliquet placerat justo, id varius elit vulputate ut. Quisque finibus tellus sed mi imperdiet, et accumsan nunc dapibus. Nam massa tortor, luctus non ante in, volutpat commodo ante. Vestibulum quis nisl eu enim suscipit sagittis. Proin lacinia erat ut cursus elementum. Curabitur rhoncus dictum lectus, auctor tempus neque congue sit amet. Nulla sagittis euismod lorem, et fringilla odio consequat sit amet. Curabitur imperdiet, mi lobortis luctus varius, mauris urna pharetra magna, tincidunt rutrum massa risus sed diam. In hac habitasse platea dictumst. Etiam at sollicitudin ligula. Duis in vestibulum ante. In a lectus tortor. Donec porttitor quam id fringilla egestas. Aenean pretium nulla vitae purus vehicula, ut mattis purus sagittis. Etiam eget vestibulum neque.
+
+Sed maximus, sem sed venenatis faucibus, augue mauris rutrum eros, non ullamcorper risus lorem in elit. Donec lorem augue, ornare quis sapien nec, accumsan dictum quam. Quisque nec tristique quam. Nullam vel tortor at massa congue condimentum. Nunc id ultricies tortor. Quisque vel purus neque. Nullam urna tortor, hendrerit quis quam tincidunt, vehicula iaculis felis. Suspendisse potenti. Nulla pharetra, sapien a fringilla ornare, ligula justo bibendum augue, quis luctus elit diam sed libero. Quisque non augue sit amet sem eleifend ultrices. Quisque blandit tempus erat. In varius magna sit amet dapibus commodo. Nunc sit amet pulvinar arcu. Suspendisse elementum massa vel ligula dapibus dapibus.
+
+Proin vel euismod justo. Vivamus placerat urna ac urna dapibus viverra. Morbi dictum lectus vel vestibulum mollis. Cras dictum semper venenatis. Nullam gravida id augue id tempor. Morbi ante leo, consectetur sit amet sollicitudin eu, sagittis eu elit. Proin quis leo tellus. In maximus tempor faucibus. Pellentesque eu facilisis nulla. Morbi at mollis ligula. Sed non quam ut lorem malesuada hendrerit vitae quis est. Sed blandit egestas hendrerit. Praesent eu fringilla elit. Nullam ultrices, risus et consequat pretium, risus erat vulputate magna, consequat laoreet erat magna eu ex. Nunc et mollis mauris. Etiam nec tortor eget dolor laoreet aliquam ut nec erat.
+
+Donec sed libero leo. Sed venenatis ante non dui tempus, sed pretium ex tristique. Ut mauris urna, rhoncus in euismod sed, cursus convallis dui. Nunc pretium, neque eget vestibulum convallis, risus metus porta sapien, auctor faucibus felis justo eget orci. Pellentesque nec aliquam metus. Duis ultricies enim blandit sem lobortis, nec posuere odio mattis. Sed eleifend ex ut interdum aliquet. Fusce quam enim, efficitur ac viverra eu, sagittis vel nulla.
 
 * [Go back to the welcome section!](#Welcome)
 
 # Test
 
 You just invoked a test function, if it was defined!
+
+Here is some fancy lorem ipsum text to make this section a little bigger. This will allow you to see how Questmark makes use of existing Markdown functionality to transport you to different states of a dialogue tree!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc nibh elit, lacinia eu tortor at, scelerisque vulputate leo. Cras sollicitudin tincidunt lorem ac consectetur. Sed et aliquam lacus. Vestibulum condimentum porttitor orci in interdum. Donec iaculis vitae diam id elementum. Donec sed orci augue. Curabitur scelerisque felis nec justo molestie, id placerat augue bibendum. Integer fermentum ut quam at convallis. Quisque a augue sed libero finibus viverra a at nulla.
+
+In aliquet placerat justo, id varius elit vulputate ut. Quisque finibus tellus sed mi imperdiet, et accumsan nunc dapibus. Nam massa tortor, luctus non ante in, volutpat commodo ante. Vestibulum quis nisl eu enim suscipit sagittis. Proin lacinia erat ut cursus elementum. Curabitur rhoncus dictum lectus, auctor tempus neque congue sit amet. Nulla sagittis euismod lorem, et fringilla odio consequat sit amet. Curabitur imperdiet, mi lobortis luctus varius, mauris urna pharetra magna, tincidunt rutrum massa risus sed diam. In hac habitasse platea dictumst. Etiam at sollicitudin ligula. Duis in vestibulum ante. In a lectus tortor. Donec porttitor quam id fringilla egestas. Aenean pretium nulla vitae purus vehicula, ut mattis purus sagittis. Etiam eget vestibulum neque.
+
+Sed maximus, sem sed venenatis faucibus, augue mauris rutrum eros, non ullamcorper risus lorem in elit. Donec lorem augue, ornare quis sapien nec, accumsan dictum quam. Quisque nec tristique quam. Nullam vel tortor at massa congue condimentum. Nunc id ultricies tortor. Quisque vel purus neque. Nullam urna tortor, hendrerit quis quam tincidunt, vehicula iaculis felis. Suspendisse potenti. Nulla pharetra, sapien a fringilla ornare, ligula justo bibendum augue, quis luctus elit diam sed libero. Quisque non augue sit amet sem eleifend ultrices. Quisque blandit tempus erat. In varius magna sit amet dapibus commodo. Nunc sit amet pulvinar arcu. Suspendisse elementum massa vel ligula dapibus dapibus.
+
+Proin vel euismod justo. Vivamus placerat urna ac urna dapibus viverra. Morbi dictum lectus vel vestibulum mollis. Cras dictum semper venenatis. Nullam gravida id augue id tempor. Morbi ante leo, consectetur sit amet sollicitudin eu, sagittis eu elit. Proin quis leo tellus. In maximus tempor faucibus. Pellentesque eu facilisis nulla. Morbi at mollis ligula. Sed non quam ut lorem malesuada hendrerit vitae quis est. Sed blandit egestas hendrerit. Praesent eu fringilla elit. Nullam ultrices, risus et consequat pretium, risus erat vulputate magna, consequat laoreet erat magna eu ex. Nunc et mollis mauris. Etiam nec tortor eget dolor laoreet aliquam ut nec erat.
+
+Donec sed libero leo. Sed venenatis ante non dui tempus, sed pretium ex tristique. Ut mauris urna, rhoncus in euismod sed, cursus convallis dui. Nunc pretium, neque eget vestibulum convallis, risus metus porta sapien, auctor faucibus felis justo eget orci. Pellentesque nec aliquam metus. Duis ultricies enim blandit sem lobortis, nec posuere odio mattis. Sed eleifend ex ut interdum aliquet. Fusce quam enim, efficitur ac viverra eu, sagittis vel nulla.
 
 * [Go back to the welcome section!](#Welcome)
 
