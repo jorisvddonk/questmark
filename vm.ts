@@ -7,6 +7,7 @@ type Instruction = NumberPushOperation | StringPushOperation | FunctionInvocatio
 type Stack = Array<string | number>;
 type Context = { [key: string]: string | number | null }
 type Instructions = Array<Instruction>;
+type Functions = { [key: string]: FunctionInvocationOperation };
 
 const stringPushOperationRegexp = /^\"(\S+)\"$/;
 const numberPushOperationRegexp = /^([0-9]+)$/;
@@ -31,7 +32,7 @@ const getStackParams = (functionName: string, paramTypes: Array<"string" | "numb
   });
 }
 
-export const functions: { [key: string]: FunctionInvocationOperation } = {
+export const std_functions: Functions = {
   "randInt": (stack: Stack) => {
     const [max] = getStackParams("randInt", ["number"], stack) as [number];
     const retval = Math.floor(Math.random() * max);
@@ -74,11 +75,6 @@ export const functions: { [key: string]: FunctionInvocationOperation } = {
     stack.push(retval);
     return retval;
   },
-  "goto": (stack: Stack) => {
-    const [str1] = getStackParams("goto", ["string"], stack) as [string];
-    console.log(`TODO: implement goto(${str1})`);
-    return null;
-  },
   "getContext": (stack: Stack, context: Context) => {
     const [str1] = getStackParams("getContext", ["string"], stack) as [string];
     const retval = context[str1];
@@ -116,9 +112,11 @@ export const functions: { [key: string]: FunctionInvocationOperation } = {
 export class VM {
   stack: Stack = [];
   context: Context = {};
+  functions: Functions;
 
-  constructor(initialContext: Context) {
+  constructor(initialContext: Context, additionalFunctions: Functions = {}) {
     this.context = initialContext;
+    this.functions = Object.assign({}, std_functions, additionalFunctions);
   }
 
   invoke(instructions: Instructions) {
@@ -155,7 +153,7 @@ export class VM {
       const matchFunctionInvocationOp = token.match(functionInvocationOperationRegexp);
       if (matchFunctionInvocationOp !== null) {
         const functionNameToPush = matchFunctionInvocationOp[1];
-        const functionToPush = functions[functionNameToPush];
+        const functionToPush = this.functions[functionNameToPush];
         if (functionToPush === undefined) {
           throw new Error(`Cannot find function in function table: ${functionNameToPush}`);
         }
@@ -175,7 +173,13 @@ export class VM {
 
 /*
 // Invocation examples:
-const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 });
+const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
+  "goto": (stack: Stack) => {
+    const [str1] = getStackParams("goto", ["string"], stack) as [string];
+    console.log(`TODO: implement goto(${str1})`);
+    return null;
+  },
+});
 vm.exec(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto`);
 vm.exec(`"captainName" getContext`);
 vm.exec(`0 "have_minerals" getContext gt`);
