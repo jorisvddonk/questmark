@@ -14,6 +14,10 @@ const engine = new QuestmarkEngine(md_src, program.clear, program.debugging, {
   "test": () => {
     console.log("TEST FUNCTION INVOKED!!");
     return null;
+  },
+  "playAudio": () => {
+    console.log("stubbed: playAudio");
+    return null;
   }
 });
 engine.parseState();
