@@ -1,7 +1,6 @@
 import MarkdownIt from 'markdown-it'
 import fs from "fs";
 import _ from 'lodash';
-import repl from 'repl';
 import dot from 'dot';
 import inquirer from 'inquirer';
 import colors from 'colors';
@@ -14,7 +13,6 @@ dot.templateSettings.strip = false;
 
 program
   .version('0.0.1')
-  .option('-r, --repl', 'Spawn REPL')
   .option('-c, --clear', 'Clear console on each state')
   .option('-d, --debugging', 'Show debug info on console')
   .parse(process.argv);
@@ -50,9 +48,6 @@ function getTokensInHeader(tokens: Token[], headerToSearch: string) {
     return memo;
   }, { isParsingHeader: false, foundHeader: false, tokensInHeader: [] }).tokensInHeader;
 }
-function getTokensInInfoHeader(tokens: Token[]) {
-  return getTokensInHeader(tokens, 'QUESTMARK-OPTIONS-HEADER');
-};
 
 function getHeaders(tokens: Token[]) {
   let parsingHeader = false;
@@ -76,6 +71,9 @@ function getHeaders(tokens: Token[]) {
 };
 
 function getQuestmarkOptions(tokens: Token[]) {
+  function getTokensInInfoHeader(tokens: Token[]) {
+    return getTokensInHeader(tokens, 'QUESTMARK-OPTIONS-HEADER');
+  };
   const defaultQuestmarkOptions = { 'hamster': 'kaasbal' };
   const codeBlockInlineTokens = _.filter(_.flatten(_.map(_.filter(getTokensInInfoHeader(tokens), function (token) {
     return token.type === 'inline';
@@ -268,19 +266,5 @@ function parseState() {
     console.log("No more options - terminating!".red);
   }
 }
-
-if (program.repl) {
-  const REPL = repl.start({
-    "useGlobal": true,
-    "useColors": true
-  });
-  REPL.context.parseMD = parseMD;
-  REPL.context.getTokensInInfoHeader = getTokensInInfoHeader;
-  REPL.context.getTokensInHeader = getTokensInHeader;
-  REPL.context.getListItemContents = getListItemContents;
-  REPL.context.lodash = _;
-  REPL.context.markdownIt = markdownIt;
-}
-
 
 parseState();
