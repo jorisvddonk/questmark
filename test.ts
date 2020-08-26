@@ -1,16 +1,16 @@
-var MarkdownIt = require('markdown-it');
-var markdownIt = new MarkdownIt();
-var fs = require('fs');
-var util = require('util');
-var _ = require('lodash');
-var repl = require('repl');
-var dot = require('dot');
-var inquirer = require('inquirer');
-var colors = require('colors');
+import MarkdownIt from 'markdown-it'
+import fs from "fs";
+import _ from 'lodash';
+import repl from 'repl';
+import dot from 'dot';
+import inquirer from 'inquirer';
+import colors from 'colors';
+import program from "commander";
+import Token from 'markdown-it/lib/token';
+
+const markdownIt = new MarkdownIt();
 dot.templateSettings.varname = 'context';
 dot.templateSettings.strip = false;
-
-var program = require('commander');
 
 program
   .version('0.0.1')
@@ -19,16 +19,15 @@ program
   .option('-d, --debugging', 'Show debug info on console')
   .parse(process.argv);
 
-var parseMD = function(text) {
-  var tokens = markdownIt.parse(text);
-  return tokens;
+function parseMD(text: string) {
+  return markdownIt.parse(text, {});
 }
 
-var md_src = fs.readFileSync('readme.md').toString();
-var X = parseMD(md_src);
+const md_src = fs.readFileSync('readme.md').toString();
+const X = parseMD(md_src);
 
-var getTokensInHeader = function(tokens, headerToSearch) {
-  return _.reduce(tokens, function(memo, token, index){
+function getTokensInHeader(tokens: Token[], headerToSearch: string) {
+  return _.reduce(tokens, function (memo, token, index) {
     if (token.type === 'heading_open') {
       memo.isParsingHeader = true;
       memo.foundHeader = false;
@@ -49,15 +48,15 @@ var getTokensInHeader = function(tokens, headerToSearch) {
     }
 
     return memo;
-  }, {isParsingHeader: false, foundHeader: false, tokensInHeader: []}).tokensInHeader;
+  }, { isParsingHeader: false, foundHeader: false, tokensInHeader: [] }).tokensInHeader;
 }
-var getTokensInInfoHeader = function(tokens) {
+function getTokensInInfoHeader(tokens: Token[]) {
   return getTokensInHeader(tokens, 'QUESTMARK-OPTIONS-HEADER');
 };
 
-var getHeaders = function(tokens) {
+function getHeaders(tokens: Token[]) {
   var parsingHeader = false;
-  return _.reduce(tokens, function(memo, token, index){
+  return _.reduce(tokens, function (memo, token, index) {
     if (parsingHeader && token.type === 'inline') {
       memo[memo.length - 1].push(token.content);
     }
@@ -76,63 +75,63 @@ var getHeaders = function(tokens) {
   }, []);
 };
 
-var getQuestmarkOptions = function(tokens){
-  var defaultQuestmarkOptions = {'hamster': 'kaasbal'};
-  var codeBlockInlineTokens = _.filter(_.flatten(_.map(_.filter(getTokensInInfoHeader(tokens), function(token) {
+function getQuestmarkOptions(tokens: Token[]) {
+  const defaultQuestmarkOptions = { 'hamster': 'kaasbal' };
+  const codeBlockInlineTokens = _.filter(_.flatten(_.map(_.filter(getTokensInInfoHeader(tokens), function (token) {
     return token.type === 'inline';
-  }), 'children')), function(inline_token) {return inline_token.type === 'code_inline'});
-  var codeBlockTokens = _.filter(getTokensInInfoHeader(tokens), function(token) {
+  }), 'children')), (inline_token) => { return inline_token.type === 'code_inline' });
+  const codeBlockTokens = _.filter(getTokensInInfoHeader(tokens), function (token) {
     return token.type === 'code_block';
   });
-  var allCodeblockTokens = codeBlockInlineTokens.concat(codeBlockTokens);
-  var codeJSONs = _.map(allCodeblockTokens, function(codeBlockToken){
-    var retval = {};
+  const allCodeblockTokens = codeBlockInlineTokens.concat(codeBlockTokens);
+  const codeJSONs = _.map(allCodeblockTokens, (codeBlockToken) => {
+    let retval = {};
     try {
       retval = JSON.parse(codeBlockToken.content);
-    } catch (e) {}
+    } catch (e) { }
     return retval;
   });
-  return _.reduce(codeJSONs, function(memo, codeJSON) {
+  return _.reduce(codeJSONs, (memo, codeJSON) => {
     return _.extend(memo, codeJSON);
   }, defaultQuestmarkOptions);
 };
 
-var getBlocksBetween = function(tokens, beginTokenType, endTokenType, truthFunc) {
+function getBlocksBetween(tokens: Token[], beginTokenType: Token["type"], endTokenType: Token["type"], truthFunc?: (token?: Token) => boolean) {
   if (truthFunc === undefined) {
-    truthFunc = function(){return true;};
+    truthFunc = function () { return true; };
   }
-  var beginIndexes = _.reduce(tokens, function(memo, token, index){
+  var beginIndexes = _.reduce(tokens, (memo, token, index) => {
     if (token.type === beginTokenType && truthFunc(token)) {
       memo.push(index);
     }
     return memo;
   }, []);
-  var endIndexes = _.reduce(tokens, function(memo, token, index){
+  var endIndexes = _.reduce(tokens, (memo, token, index) => {
     if (token.type === endTokenType && truthFunc(token)) {
       memo.push(index);
     }
     return memo;
   }, []);
   var blockIndexes = _.zip(beginIndexes, endIndexes);
-  return _.reduce(blockIndexes, function(memo, blockIndex){
-    memo.push(tokens.slice(blockIndex[0]+1, blockIndex[1]));
+  return _.reduce(blockIndexes, (memo, blockIndex) => {
+    memo.push(tokens.slice(blockIndex[0] + 1, blockIndex[1]));
     return memo;
   }, []);
 };
 
-var filterBlocks = function(blocks, tokenType) {
-  return _.map(blocks, function(block){return _.filter(block, function(token){return token.type === tokenType;});});
+function filterBlocks(blocks, tokenType: Token["type"]) {
+  return _.map(blocks, (block) => { return _.filter(block, function (token: Token) { return token.type === tokenType; }); });
 };
 
-var getListItemContents = function(tokens) {
-  return filterBlocks(getBlocksBetween(tokens, 'list_item_open', 'list_item_close', function(token){return token.markup === "*"}), 'inline');
+var getListItemContents = function (tokens: Token[]) {
+  return filterBlocks(getBlocksBetween(tokens, 'list_item_open', 'list_item_close', function (token) { return token.markup === "*" }), 'inline');
 };
 
-var getOptionsForTokens = function(tokens, availableHeaders) {
+var getOptionsForTokens = function (tokens: Token[], availableHeaders) {
   var listItems = getListItemContents(tokens);
-  return _.map(listItems, function(listItem){
-    var content = _.trim(_.map(_.filter(listItem[0].children, function(c){return c.type === 'text'}), 'content').join(" "));
-    var linkOpenTag = _.filter(listItem[0].children, function(c){return c.type === 'link_open'}).pop();
+  return _.map(listItems, function (listItem) {
+    var content = _.trim(_.map(_.filter(listItem[0].children, function (c) { return c.type === 'text' }), 'content').join(" "));
+    var linkOpenTag = _.filter(listItem[0].children, function (c) { return c.type === 'link_open' }).pop();
     var href;
     var tostate;
     if (linkOpenTag !== undefined) {
@@ -157,7 +156,7 @@ var getOptionsForTokens = function(tokens, availableHeaders) {
   });
 };
 
-var getRawTextInHeader = function(orig_md_text, tokens, header) {
+var getRawTextInHeader = function (orig_md_text, tokens: Token[], header) {
   var headers = getHeaders(tokens);
   var thisHeader = header;
   var thisHeaderIndex = _.indexOf(headers, header);
@@ -167,7 +166,7 @@ var getRawTextInHeader = function(orig_md_text, tokens, header) {
   }
   var thisHeaderTokens = getTokensInHeader(tokens, thisHeader);
 
-  var lineData = _.reduce(_.map(thisHeaderTokens, 'map'), function(memo, mapVal) {
+  var lineData = _.reduce(_.map(thisHeaderTokens, 'map'), function (memo, mapVal) {
     if (_.isArray(mapVal)) {
       if (mapVal[0] < memo.begin) {
         memo.begin = mapVal[0];
@@ -177,9 +176,9 @@ var getRawTextInHeader = function(orig_md_text, tokens, header) {
       }
     }
     return memo;
-  }, {'begin': Infinity, 'end': -Infinity});
+  }, { 'begin': Infinity, 'end': -Infinity });
   if (lineData.begin !== Infinity && lineData.end !== Infinity) {
-    return orig_md_text.split('\n').slice(lineData.begin-1, lineData.end).join('\n');
+    return orig_md_text.split('\n').slice(lineData.begin - 1, lineData.end).join('\n');
   } else {
     throw new Error("Header did not have any line data: " + header);
   }
@@ -191,7 +190,7 @@ var currentState = (questmarkOptions.hasOwnProperty('initial-state') ? questmark
 var allHeaders = getHeaders(X);
 var previousErrors = [];
 
-var execCode = function(data, previousErrors) {
+var execCode = function (data, previousErrors) {
   try {
     return eval(data);
   } catch (e) {
@@ -200,12 +199,12 @@ var execCode = function(data, previousErrors) {
   }
 }
 
-var processTokens = function(tokens, previousErrors) {
-  return _.compact(_.map(tokens, function(x) {
+var processTokens = function (tokens: Token[], previousErrors) {
+  return _.compact(_.map(tokens, function (x) {
     if (x.type === 'code_inline') {
-      var retval = execCode(x.content, previousErrors);
+      const retval = execCode(x.content, previousErrors);
       if (retval === undefined) {
-        return undefined;        
+        return undefined;
       } else {
         x.content = retval;
         return x;
@@ -213,39 +212,39 @@ var processTokens = function(tokens, previousErrors) {
     } else {
       x.children = processTokens(x.children, previousErrors);
       if (x.children.length > 0) {
-        x.content = _.reduce(x.children, function(memo, child){
+        x.content = _.reduce(x.children, function (memo, child) {
           var ncontent = child.content;
           if (child.type === 'softbreak') {
             ncontent = '\n';
           }
           return memo + ncontent;
-        }, "");        
+        }, "");
       }
-      return x;      
+      return x;
     }
   }));
 }
 
-var parseState = function() {
+function parseState() {
   if (program.clear) {
-    process.stdout.write('\x1Bc\n');  
+    process.stdout.write('\x1Bc\n');
   }
   if (previousErrors.length > 0) {
-    _.each(previousErrors, function(previousError) {
-      console.log(("Warning: error occurred: " + previousError.toString()).bold.red);
+    _.each(previousErrors, function (previousError) {
+      console.log(colors.red.bold("Warning: error occurred: " + previousError.toString()));
     })
   }
   previousErrors = [];
-  var textInHeader = getRawTextInHeader(md_src, X, currentState);
-  var templateFunc = dot.template(textInHeader);
-  var state_markdown = templateFunc(context);
-  var state_tokens = parseMD(state_markdown);
-  var paragraphsData = processTokens(_.filter(_.flatten(getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')), function(x){return x.level === 1}), previousErrors);
-  console.log(_.reduce(paragraphsData, function(memo, val){
+  const textInHeader = getRawTextInHeader(md_src, X, currentState);
+  const templateFunc = dot.template(textInHeader);
+  const state_markdown = templateFunc(context);
+  const state_tokens = parseMD(state_markdown);
+  const paragraphsData = processTokens(_.filter(_.flatten(getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')), function (x) { return x.level === 1 }), previousErrors);
+  console.log(_.reduce(paragraphsData, function (memo, val) {
     memo = memo + '\n\n' + val.content;
     return memo;
   }, "").bold.blue);
-  var options = getOptionsForTokens(state_tokens, allHeaders);
+  const options = getOptionsForTokens(state_tokens, allHeaders);
   if (program.debugging) {
     console.log(options);
   }
@@ -255,16 +254,16 @@ var parseState = function() {
       name: "selection",
       message: " ",
       choices: _.map(options, 'content')
-    }]).then(function(answers) {
-      var selectedOption = _.find(options, function(x){return x.content === answers.selection});
-      var codeTokens = _.filter(selectedOption.tokens, function(x){return x.type === 'code_inline'});
-      _.each(codeTokens, function(codeToken){
+    }]).then(function (answers) {
+      const selectedOption = _.find(options, function (x) { return x.content === answers.selection });
+      const codeTokens = _.filter(selectedOption.tokens, function (x) { return x.type === 'code_inline' });
+      _.each(codeTokens, function (codeToken) {
         execCode(codeToken.content, previousErrors);
       });
       if (selectedOption.tostate !== undefined) {
         currentState = selectedOption.tostate;
         parseState();
-      }        
+      }
     });
   } else {
     console.log("No more options - terminating!".red);
@@ -272,14 +271,13 @@ var parseState = function() {
 }
 
 if (program.repl) {
-  var REPL = repl.start({
+  const REPL = repl.start({
     "useGlobal": true,
     "useColors": true
   });
   REPL.context.parseMD = parseMD;
   REPL.context.getTokensInInfoHeader = getTokensInInfoHeader;
   REPL.context.getTokensInHeader = getTokensInHeader;
-  REPL.context.getOptionsForHeaderBlock = getOptionsForHeaderBlock;
   REPL.context.getListItemContents = getListItemContents;
   REPL.context.lodash = _;
   REPL.context.markdownIt = markdownIt;

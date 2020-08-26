@@ -15,5 +15,13 @@
     "inquirer": "^6.2.0",
     "lodash": "^4.17.11",
     "markdown-it": "^8.4.2"
+  },
+  "devDependencies": {
+    "@types/colors": "^1.2.1",
+    "@types/commander": "^2.12.2",
+    "@types/dot": "^1.1.4",
+    "@types/inquirer": "^7.3.1",
+    "@types/markdown-it": "^10.0.2",
+    "@types/node": "^14.6.0"
   }
 }
