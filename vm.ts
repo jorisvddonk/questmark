@@ -12,77 +12,75 @@ const stringPushOperationRegexp = /^\"(\S+)\"$/;
 const numberPushOperationRegexp = /^([0-9]+)$/;
 const functionInvocationOperationRegexp = /^(\S+)$/;
 
+const getStackParams = (functionName: string, paramTypes: Array<"string" | "number" | "string | number">, stack: Stack) => {
+  /**
+   * Convenience function. Gets params from the stack and throws an error if there's an issue.
+   */
+  return paramTypes.map((paramType, i) => {
+    const val = stack.pop();
+    if (paramType === "string | number") {
+      if (typeof val !== "number" && typeof val !== "string") {
+        throw new Error(`${functionName}: stack param ${i + 1} is not a string or number!`);
+      }
+    } else {
+      if (typeof val !== paramType) {
+        throw new Error(`${functionName}: stack param ${i + 1} is not a ${paramType}!`);
+      }
+    }
+    return val;
+  });
+}
+
 export const functions: { [key: string]: FunctionInvocationOperation } = {
   "randInt": (stack: Stack) => {
-    const max = stack.pop();
-    if (typeof max !== "number") {
-      throw new Error("randInt: stack param is not a number!");
-    }
+    const [max] = getStackParams("randInt", ["number"], stack) as [number];
     const retval = Math.floor(Math.random() * max);
     stack.push(retval);
     return retval;
   },
   "charCode": (stack: Stack) => {
-    const num = stack.pop();
-    if (typeof num !== "number") {
-      throw new Error("charCode: stack param is not a number!");
-    }
+    const [num] = getStackParams("charCode", ["number"], stack) as [number];
     const retval = String.fromCharCode(num);
     stack.push(retval);
     return retval;
   },
   "+": (stack: Stack) => {
-    const num1 = stack.pop();
-    const num2 = stack.pop();
-    if (typeof num1 !== "number") {
-      throw new Error("+: stack param 1 is not a number!");
-    }
-    if (typeof num2 !== "number") {
-      throw new Error("+: stack param 2 is not a number!");
-    }
+    const [num1, num2] = getStackParams("+", ["number", "number"], stack) as [number, number];
     const retval = num1 + num2;
     stack.push(retval);
     return retval;
   },
+  "-": (stack: Stack) => {
+    const [num1, num2] = getStackParams("-", ["number", "number"], stack) as [number, number];
+    const retval = num1 - num2;
+    stack.push(retval);
+    return retval;
+  },
+  "*": (stack: Stack) => {
+    const [num1, num2] = getStackParams("*", ["number", "number"], stack) as [number, number];
+    const retval = num1 * num2;
+    stack.push(retval);
+    return retval;
+  },
   "concat": (stack: Stack) => {
-    const str1 = stack.pop();
-    const str2 = stack.pop();
-    if (typeof str1 !== "string") {
-      throw new Error("concat: stack param 1 is not a string!");
-    }
-    if (typeof str2 !== "string") {
-      throw new Error("concat: stack param 2 is not a string!");
-    }
+    const [str1, str2] = getStackParams("concat", ["string", "string"], stack) as [string, string];
     const retval = `${str1}${str2}`;
     stack.push(retval);
     return retval;
   },
   "rconcat": (stack: Stack) => {
-    const str1 = stack.pop();
-    const str2 = stack.pop();
-    if (typeof str1 !== "string") {
-      throw new Error("rconcat: stack param 1 is not a string!");
-    }
-    if (typeof str2 !== "string") {
-      throw new Error("rconcat: stack param 2 is not a string!");
-    }
+    const [str1, str2] = getStackParams("rconcat", ["string", "string"], stack) as [string, string];
     const retval = `${str2}${str1}`;
     stack.push(retval);
     return retval;
   },
   "goto": (stack: Stack) => {
-    const str1 = stack.pop();
-    if (typeof str1 !== "string") {
-      throw new Error("goto: stack param 1 is not a string!");
-    }
+    const [str1] = getStackParams("goto", ["string"], stack) as [string];
     console.log(`TODO: implement goto(${str1})`);
     return null;
   },
   "getContext": (stack: Stack, context: Context) => {
-    const str1 = stack.pop();
-    if (typeof str1 !== "string") {
-      throw new Error("getContext: stack param 1 is not a string!");
-    }
+    const [str1] = getStackParams("getContext", ["string"], stack) as [string];
     const retval = context[str1];
     if (retval === null || retval === undefined) {
       throw new Error("getContext: null/undefined can not be pushed to the context!");
@@ -91,14 +89,7 @@ export const functions: { [key: string]: FunctionInvocationOperation } = {
     return retval;
   },
   "setContext": (stack: Stack, context: Context) => {
-    const str1 = stack.pop();
-    const arg2 = stack.pop();
-    if (typeof str1 !== "string") {
-      throw new Error("setContext: stack param 1 is not a string!");
-    }
-    if (typeof arg2 !== "string" && typeof arg2 !== "number") {
-      throw new Error("setContext: stack param 2 is not a string or number!");
-    }
+    const [str1, arg2] = getStackParams("setContext", ["string", "string | number"], stack) as [string, string | number];
     context[str1] = arg2;
     return null;
   }
