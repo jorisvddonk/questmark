@@ -5,7 +5,7 @@ import dot from 'dot';
 import inquirer from 'inquirer';
 import colors from 'colors';
 import Token from 'markdown-it/lib/token';
-import { VM, Functions } from './vm';
+import { VM, Functions, Stack, Context } from './vm';
 
 const markdownIt = new MarkdownIt();
 dot.templateSettings.varname = 'context';
@@ -27,6 +27,19 @@ export class QuestmarkEngine {
 
 
   constructor(markdownSource: string, clear?: boolean, debugging?: boolean, additionalFunctions?: Functions) {
+    const extraFunctions: Functions = {
+      ...(additionalFunctions || {}), ...{
+        goto: (stack: Stack, context: Context) => {
+          const str1 = stack.pop();
+          if (typeof str1 !== "string") {
+            throw new Error("goto: param 1 on stack is not of type string!");
+          }
+          this.currentState = str1;
+          this.parseState();
+          return null;
+        }
+      }
+    };
     this.markdownSource = markdownSource;
     this.X = this.parseMD(this.markdownSource);
     this.questmarkOptions = this.getQuestmarkOptions(this.X);
@@ -34,7 +47,7 @@ export class QuestmarkEngine {
     this.allHeaders = this.getHeaders(this.X)
     this.clear = clear || false;
     this.debugging = debugging || false;
-    this.vm = new VM((this.questmarkOptions.hasOwnProperty('initial-context') ? this.questmarkOptions['initial-context'] : {}), additionalFunctions);
+    this.vm = new VM((this.questmarkOptions.hasOwnProperty('initial-context') ? this.questmarkOptions['initial-context'] : {}), extraFunctions);
   }
 
   parseMD(text: string) {
@@ -203,7 +216,7 @@ export class QuestmarkEngine {
         if (retval === undefined) {
           return undefined;
         } else {
-          x.content = "" + retval; // TODO: verify this is good....
+          x.content = "" + (retval !== null && retval !== undefined ? "" + retval : "");
           return x;
         }
       } else {
@@ -221,14 +234,6 @@ export class QuestmarkEngine {
 
   execCode(data: string) {
     return this.vm.exec(data);
-    /*
-    try {
-      return eval(data);
-    } catch (e) {
-      this.previousErrors.push(e);
-      return undefined;
-    }
-    */
   }
 
   parseState() {
