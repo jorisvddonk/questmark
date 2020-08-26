@@ -228,7 +228,7 @@ var processTokens = function(tokens, previousErrors) {
 
 var parseState = function() {
   if (program.clear) {
-    process.stdout.write('\033c\n');  
+    process.stdout.write('\x1Bc\n');  
   }
   if (previousErrors.length > 0) {
     _.each(previousErrors, function(previousError) {
