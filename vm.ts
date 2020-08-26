@@ -1,10 +1,11 @@
-type NumberPushOperation = (stack: Stack) => number;
-type StringPushOperation = (stack: Stack) => string;
-type FunctionInvocationOperation = (stack: Stack) => string | number | Array<string | number> | null;
+type NumberPushOperation = (stack: Stack, context?: Context) => number;
+type StringPushOperation = (stack: Stack, context?: Context) => string;
+type FunctionInvocationOperation = (stack: Stack, context: Context) => string | number | Array<string | number> | null;
 
 type Instruction = NumberPushOperation | StringPushOperation | FunctionInvocationOperation;
 
 type Stack = Array<string | number>;
+type Context = { [key: string]: string | number | null }
 type Instructions = Array<Instruction>;
 
 const stringPushOperationRegexp = /^\"(\S+)\"$/;
@@ -76,21 +77,49 @@ export const functions: { [key: string]: FunctionInvocationOperation } = {
     }
     console.log(`TODO: implement goto(${str1})`);
     return null;
+  },
+  "getContext": (stack: Stack, context: Context) => {
+    const str1 = stack.pop();
+    if (typeof str1 !== "string") {
+      throw new Error("getContext: stack param 1 is not a string!");
+    }
+    const retval = context[str1];
+    if (retval === null || retval === undefined) {
+      throw new Error("getContext: null/undefined can not be pushed to the context!");
+    }
+    stack.push(retval);
+    return retval;
+  },
+  "setContext": (stack: Stack, context: Context) => {
+    const str1 = stack.pop();
+    const arg2 = stack.pop();
+    if (typeof str1 !== "string") {
+      throw new Error("setContext: stack param 1 is not a string!");
+    }
+    if (typeof arg2 !== "string" && typeof arg2 !== "number") {
+      throw new Error("setContext: stack param 2 is not a string or number!");
+    }
+    context[str1] = arg2;
+    return null;
   }
 }
 
 export class VM {
   stack: Stack = [];
+  context: Context = {};
 
-  constructor() { }
+  constructor(initialContext: Context) {
+    this.context = initialContext;
+  }
 
   invoke(instructions: Instructions) {
     console.log("invoking!");
+    let retval = undefined;
     instructions.forEach(instruction => {
       console.log(`stack (json): ${JSON.stringify(this.stack)}`);
-      instruction(this.stack);
+      retval = instruction(this.stack, this.context);
     });
-    console.log("done!");
+    console.log(`done! return value: ${retval}, final stack: ${JSON.stringify(this.stack)}`);
   }
 
   parseCodeBlock(codeBlock: string) {
@@ -132,7 +161,7 @@ export class VM {
 
 /*
 // Invocation:
-const vm = new VM();
-const parsedCodeBlock = vm.parseCodeBlock(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto`);
+const vm = new VM({ "captainName": "Zelnick" });
+const parsedCodeBlock = vm.parseCodeBlock(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto "captainName" getContext`);
 vm.invoke(parsedCodeBlock);
 */
