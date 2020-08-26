@@ -116,7 +116,7 @@ export class VM {
 
   constructor(initialContext: Context, additionalFunctions: Functions = {}) {
     this.context = initialContext;
-    this.functions = Object.assign({}, std_functions, additionalFunctions);
+    this.functions = { ...std_functions, ...additionalFunctions };
   }
 
   invoke(instructions: Instructions) {
