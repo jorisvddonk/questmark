@@ -123,7 +123,16 @@ export class VM {
         }
         return functionToPush;
       }
+
+      throw new Error(`Could not parse token: \`${token}\``);
     });
     return instructions;
   }
 }
+
+/*
+// Invocation:
+const vm = new VM();
+const parsedCodeBlock = vm.parseCodeBlock(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto`);
+vm.invoke(parsedCodeBlock);
+*/
