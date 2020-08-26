@@ -98,7 +98,7 @@ function getQuestmarkOptions(tokens: Token[]) {
 
 function getBlocksBetween(tokens: Token[], beginTokenType: Token["type"], endTokenType: Token["type"], truthFunc?: (token?: Token) => boolean) {
   if (truthFunc === undefined) {
-    truthFunc = function () { return true; };
+    truthFunc = () => true;
   }
   const beginIndexes = _.reduce(tokens, (memo, token, index) => {
     if (token.type === beginTokenType && truthFunc(token)) {
@@ -123,13 +123,13 @@ function filterBlocks(blocks, tokenType: Token["type"]) {
   return _.map(blocks, (block) => { return _.filter(block, function (token: Token) { return token.type === tokenType; }); });
 };
 
-const getListItemContents = function (tokens: Token[]) {
+function getListItemContents(tokens: Token[]) {
   return filterBlocks(getBlocksBetween(tokens, 'list_item_open', 'list_item_close', function (token) { return token.markup === "*" }), 'inline');
 };
 
-const getOptionsForTokens = function (tokens: Token[], availableHeaders) {
+function getOptionsForTokens(tokens: Token[], availableHeaders) {
   const listItems = getListItemContents(tokens);
-  return _.map(listItems, function (listItem) {
+  return listItems.map(listItem => {
     const content = _.trim(_.map(_.filter(listItem[0].children, function (c) { return c.type === 'text' }), 'content').join(" "));
     const linkOpenTag = _.filter(listItem[0].children, function (c) { return c.type === 'link_open' }).pop();
     let href;
@@ -156,7 +156,7 @@ const getOptionsForTokens = function (tokens: Token[], availableHeaders) {
   });
 };
 
-const getRawTextInHeader = function (orig_md_text, tokens: Token[], header) {
+function getRawTextInHeader(orig_md_text, tokens: Token[], header) {
   const headers = getHeaders(tokens);
   const thisHeader = header;
   const thisHeaderIndex = _.indexOf(headers, header);
