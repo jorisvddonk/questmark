@@ -49,9 +49,9 @@ function getTokensInHeader(tokens: Token[], headerToSearch: string) {
   }, { isParsingHeader: false, foundHeader: false, tokensInHeader: [] }).tokensInHeader;
 }
 
-function getHeaders(tokens: Token[]) {
+function getHeaders(tokens: Token[]): Token["content"][] {
   let parsingHeader = false;
-  return _.reduce(tokens, function (memo, token, index) {
+  return tokens.reduce((memo, token, index) => {
     if (parsingHeader && token.type === 'inline') {
       memo[memo.length - 1].push(token.content);
     }
@@ -62,19 +62,18 @@ function getHeaders(tokens: Token[]) {
     }
 
     if (token.type === 'heading_close') {
-      memo[memo.length - 1] = memo[memo.length - 1].join(" ");
       parsingHeader = false;
     }
 
     return memo;
-  }, []);
+  }, [] as Token["content"][][]).map(strarr => strarr.join(" "));
 };
 
-function getQuestmarkOptions(tokens: Token[]) {
+function getQuestmarkOptions(tokens: Token[]): Object {
   function getTokensInInfoHeader(tokens: Token[]) {
     return getTokensInHeader(tokens, 'QUESTMARK-OPTIONS-HEADER');
   };
-  const defaultQuestmarkOptions = { 'hamster': 'kaasbal' };
+  const defaultQuestmarkOptions = {};
   const codeBlockInlineTokens = _.filter(_.flatten(_.map(_.filter(getTokensInInfoHeader(tokens), function (token) {
     return token.type === 'inline';
   }), 'children')), (inline_token) => { return inline_token.type === 'code_inline' });
@@ -98,23 +97,23 @@ function getBlocksBetween(tokens: Token[], beginTokenType: Token["type"], endTok
   if (truthFunc === undefined) {
     truthFunc = () => true;
   }
-  const beginIndexes = _.reduce(tokens, (memo, token, index) => {
+  const beginIndexes = tokens.reduce((memo, token, index) => {
     if (token.type === beginTokenType && truthFunc(token)) {
       memo.push(index);
     }
     return memo;
-  }, []);
-  const endIndexes = _.reduce(tokens, (memo, token, index) => {
+  }, [] as number[]);
+  const endIndexes = tokens.reduce((memo, token, index) => {
     if (token.type === endTokenType && truthFunc(token)) {
       memo.push(index);
     }
     return memo;
-  }, []);
+  }, [] as number[]);
   const blockIndexes = _.zip(beginIndexes, endIndexes);
-  return _.reduce(blockIndexes, (memo, blockIndex) => {
+  return blockIndexes.reduce((memo, blockIndex) => {
     memo.push(tokens.slice(blockIndex[0] + 1, blockIndex[1]));
     return memo;
-  }, []);
+  }, [] as Token[][]);
 };
 
 function filterBlocks(blocks, tokenType: Token["type"]) {
@@ -237,10 +236,10 @@ function parseState() {
   const state_markdown = templateFunc(context);
   const state_tokens = parseMD(state_markdown);
   const paragraphsData = processTokens(_.filter(_.flatten(getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')), function (x) { return x.level === 1 }), previousErrors);
-  console.log(_.reduce(paragraphsData, function (memo, val) {
+  console.log(colors.bold.blue(_.reduce(paragraphsData, function (memo, val) {
     memo = memo + '\n\n' + val.content;
     return memo;
-  }, "").bold.blue);
+  }, "")));
   const options = getOptionsForTokens(state_tokens, allHeaders);
   if (program.debugging) {
     console.log(options);
