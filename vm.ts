@@ -1,13 +1,14 @@
-type NumberPushOperation = (stack: Stack, context?: Context) => number;
-type StringPushOperation = (stack: Stack, context?: Context) => string;
-type FunctionInvocationOperation = (stack: Stack, context: Context) => string | number | Array<string | number> | null;
+export type NumberPushOperation = (stack: Stack, context?: Context) => number;
+export type StringPushOperation = (stack: Stack, context?: Context) => string;
+export type FunctionInvocationOperation = (stack: Stack, context: Context) => string | number | Array<string | number> | null;
 
-type Instruction = NumberPushOperation | StringPushOperation | FunctionInvocationOperation;
+export type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
+export type Instruction = NumberPushOperation | StringPushOperation | FunctionInvocationOperation;
 
-type Stack = Array<string | number>;
-type Context = { [key: string]: string | number | null }
-type Instructions = Array<Instruction>;
-type Functions = { [key: string]: FunctionInvocationOperation };
+export type Stack = Array<string | number>;
+export type Context = { [key: string]: string | number | null }
+export type Instructions = Array<Instruction>;
+export type Functions = { [key: string]: FunctionInvocationOperation };
 
 const stringPushOperationRegexp = /^\"(\S+)\"$/;
 const numberPushOperationRegexp = /^([0-9]+)$/;
@@ -121,12 +122,13 @@ export class VM {
 
   invoke(instructions: Instructions) {
     console.log("invoking!");
-    let retval = undefined;
+    let retval: ReturnType<Instruction> = undefined;
     instructions.forEach(instruction => {
       console.log(`stack (json): ${JSON.stringify(this.stack)}`);
       retval = instruction(this.stack, this.context);
     });
-    console.log(`done! return value: ${retval}, final stack: ${JSON.stringify(this.stack)}`);
+    console.log(`done! return value: ${retval}, final stack: ${JSON.stringify(this.stack)}, final context: ${JSON.stringify(this.context)}`);
+    return retval;
   }
 
   parseCodeBlock(codeBlock: string) {
@@ -167,7 +169,7 @@ export class VM {
 
   exec(codeBlock: string) {
     const parsedBlock = this.parseCodeBlock(codeBlock);
-    this.invoke(parsedBlock);
+    return this.invoke(parsedBlock);
   }
 }
 
