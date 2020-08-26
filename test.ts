@@ -116,7 +116,7 @@ function getBlocksBetween(tokens: Token[], beginTokenType: Token["type"], endTok
   }, [] as Token[][]);
 };
 
-function filterBlocks(blocks, tokenType: Token["type"]) {
+function filterBlocks(blocks: Token[][], tokenType: Token["type"]) {
   return _.map(blocks, (block) => { return _.filter(block, function (token: Token) { return token.type === tokenType; }); });
 };
 
@@ -185,18 +185,11 @@ const questmarkOptions = getQuestmarkOptions(X);
 const context = (questmarkOptions.hasOwnProperty('initial-context') ? questmarkOptions['initial-context'] : {});
 let currentState = (questmarkOptions.hasOwnProperty('initial-state') ? questmarkOptions['initial-state'] : "InitialState");
 const allHeaders = getHeaders(X);
-const previousErrors = [];
+const previousErrors: Error[] = [];
 
-function execCode(data, previousErrors) {
-  try {
-    return eval(data);
-  } catch (e) {
-    previousErrors.push(e);
-    return undefined;
-  }
-}
+type ExecCodeFn = (data: string, previousErrors: Error[]) => any;
 
-function processTokens(tokens: Token[], previousErrors) {
+function processTokens(tokens: Token[], previousErrors: Error[], execCode: ExecCodeFn) {
   return _.compact(_.map(tokens, function (x) {
     if (x.type === 'code_inline') {
       const retval = execCode(x.content, previousErrors);
@@ -207,7 +200,7 @@ function processTokens(tokens: Token[], previousErrors) {
         return x;
       }
     } else {
-      x.children = processTokens(x.children, previousErrors);
+      x.children = processTokens(x.children, previousErrors, execCode);
       if (x.children.length > 0) {
         x.content = _.reduce(x.children, function (memo, child) {
           const ncontent = child.type === 'softbreak' ? '\n' : child.content;
@@ -219,7 +212,19 @@ function processTokens(tokens: Token[], previousErrors) {
   }));
 }
 
-function parseState() {
+function parseState(execCode?: ExecCodeFn) {
+  if (execCode === undefined) {
+    execCode = (data: string, previousErrors: Error[]) => {
+      try {
+        return eval(data);
+      } catch (e) {
+        previousErrors.push(e);
+        return undefined;
+      }
+    }
+  }
+
+
   if (program.clear) {
     process.stdout.write('\x1Bc\n');
   }
@@ -235,7 +240,7 @@ function parseState() {
   const templateFunc = dot.template(textInHeader);
   const state_markdown = templateFunc(context);
   const state_tokens = parseMD(state_markdown);
-  const paragraphsData = processTokens(_.filter(_.flatten(getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')), function (x) { return x.level === 1 }), previousErrors);
+  const paragraphsData = processTokens(_.filter(_.flatten(getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')), function (x) { return x.level === 1 }), previousErrors, execCode);
   console.log(colors.bold.blue(_.reduce(paragraphsData, function (memo, val) {
     memo = memo + '\n\n' + val.content;
     return memo;
@@ -249,11 +254,11 @@ function parseState() {
       type: "list",
       name: "selection",
       message: " ",
-      choices: _.map(options, 'content')
+      choices: options.map(o => o.content)
     }]).then(function (answers) {
-      const selectedOption = _.find(options, function (x) { return x.content === answers.selection });
-      const codeTokens = _.filter(selectedOption.tokens, function (x) { return x.type === 'code_inline' });
-      _.each(codeTokens, function (codeToken) {
+      const selectedOption = options.find(x => x.content === answers.selection);
+      const codeTokens = selectedOption.tokens.filter(x => x.type === 'code_inline');
+      codeTokens.forEach((codeToken) => {
         execCode(codeToken.content, previousErrors);
       });
       if (selectedOption.tostate !== undefined) {
