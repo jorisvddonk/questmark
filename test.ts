@@ -263,7 +263,7 @@ function parseState(execCode?: ExecCodeFn) {
       });
       if (selectedOption.tostate !== undefined) {
         currentState = selectedOption.tostate;
-        parseState();
+        parseState(execCode);
       }
     });
   } else {
