@@ -92,7 +92,25 @@ export const functions: { [key: string]: FunctionInvocationOperation } = {
     const [str1, arg2] = getStackParams("setContext", ["string", "string | number"], stack) as [string, string | number];
     context[str1] = arg2;
     return null;
-  }
+  },
+  "gt": (stack: Stack, context: Context) => {
+    const [num1, num2] = getStackParams("gt", ["number", "number"], stack) as [number, number];
+    const retval = num1 > num2 ? 1 : 0;
+    stack.push(retval);
+    return retval;
+  },
+  "lt": (stack: Stack, context: Context) => {
+    const [num1, num2] = getStackParams("lt", ["number", "number"], stack) as [number, number];
+    const retval = num1 < num2 ? 1 : 0;
+    stack.push(retval);
+    return retval;
+  },
+  "eq": (stack: Stack, context: Context) => {
+    const [num1, num2] = getStackParams("eq", ["number", "number"], stack) as [number, number];
+    const retval = num1 === num2 ? 1 : 0;
+    stack.push(retval);
+    return retval;
+  },
 }
 
 export class VM {
@@ -148,11 +166,17 @@ export class VM {
     });
     return instructions;
   }
+
+  exec(codeBlock: string) {
+    const parsedBlock = this.parseCodeBlock(codeBlock);
+    this.invoke(parsedBlock);
+  }
 }
 
 /*
-// Invocation:
-const vm = new VM({ "captainName": "Zelnick" });
-const parsedCodeBlock = vm.parseCodeBlock(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto "captainName" getContext`);
-vm.invoke(parsedCodeBlock);
+// Invocation examples:
+const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 });
+vm.exec(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto`);
+vm.exec(`"captainName" getContext`);
+vm.exec(`0 "have_minerals" getContext gt`);
 */
