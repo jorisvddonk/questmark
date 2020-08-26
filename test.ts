@@ -55,7 +55,7 @@ function getTokensInInfoHeader(tokens: Token[]) {
 };
 
 function getHeaders(tokens: Token[]) {
-  var parsingHeader = false;
+  let parsingHeader = false;
   return _.reduce(tokens, function (memo, token, index) {
     if (parsingHeader && token.type === 'inline') {
       memo[memo.length - 1].push(token.content);
@@ -100,19 +100,19 @@ function getBlocksBetween(tokens: Token[], beginTokenType: Token["type"], endTok
   if (truthFunc === undefined) {
     truthFunc = function () { return true; };
   }
-  var beginIndexes = _.reduce(tokens, (memo, token, index) => {
+  const beginIndexes = _.reduce(tokens, (memo, token, index) => {
     if (token.type === beginTokenType && truthFunc(token)) {
       memo.push(index);
     }
     return memo;
   }, []);
-  var endIndexes = _.reduce(tokens, (memo, token, index) => {
+  const endIndexes = _.reduce(tokens, (memo, token, index) => {
     if (token.type === endTokenType && truthFunc(token)) {
       memo.push(index);
     }
     return memo;
   }, []);
-  var blockIndexes = _.zip(beginIndexes, endIndexes);
+  const blockIndexes = _.zip(beginIndexes, endIndexes);
   return _.reduce(blockIndexes, (memo, blockIndex) => {
     memo.push(tokens.slice(blockIndex[0] + 1, blockIndex[1]));
     return memo;
@@ -123,17 +123,17 @@ function filterBlocks(blocks, tokenType: Token["type"]) {
   return _.map(blocks, (block) => { return _.filter(block, function (token: Token) { return token.type === tokenType; }); });
 };
 
-var getListItemContents = function (tokens: Token[]) {
+const getListItemContents = function (tokens: Token[]) {
   return filterBlocks(getBlocksBetween(tokens, 'list_item_open', 'list_item_close', function (token) { return token.markup === "*" }), 'inline');
 };
 
-var getOptionsForTokens = function (tokens: Token[], availableHeaders) {
-  var listItems = getListItemContents(tokens);
+const getOptionsForTokens = function (tokens: Token[], availableHeaders) {
+  const listItems = getListItemContents(tokens);
   return _.map(listItems, function (listItem) {
-    var content = _.trim(_.map(_.filter(listItem[0].children, function (c) { return c.type === 'text' }), 'content').join(" "));
-    var linkOpenTag = _.filter(listItem[0].children, function (c) { return c.type === 'link_open' }).pop();
-    var href;
-    var tostate;
+    const content = _.trim(_.map(_.filter(listItem[0].children, function (c) { return c.type === 'text' }), 'content').join(" "));
+    const linkOpenTag = _.filter(listItem[0].children, function (c) { return c.type === 'link_open' }).pop();
+    let href;
+    let tostate;
     if (linkOpenTag !== undefined) {
       href = _.fromPairs(linkOpenTag.attrs).href;
     }
@@ -156,17 +156,17 @@ var getOptionsForTokens = function (tokens: Token[], availableHeaders) {
   });
 };
 
-var getRawTextInHeader = function (orig_md_text, tokens: Token[], header) {
-  var headers = getHeaders(tokens);
-  var thisHeader = header;
-  var thisHeaderIndex = _.indexOf(headers, header);
+const getRawTextInHeader = function (orig_md_text, tokens: Token[], header) {
+  const headers = getHeaders(tokens);
+  const thisHeader = header;
+  const thisHeaderIndex = _.indexOf(headers, header);
 
   if (thisHeaderIndex === undefined) {
     throw new Error("Header not found in input tokens!");
   }
-  var thisHeaderTokens = getTokensInHeader(tokens, thisHeader);
+  const thisHeaderTokens = getTokensInHeader(tokens, thisHeader);
 
-  var lineData = _.reduce(_.map(thisHeaderTokens, 'map'), function (memo, mapVal) {
+  const lineData = _.reduce(_.map(thisHeaderTokens, 'map'), function (memo, mapVal) {
     if (_.isArray(mapVal)) {
       if (mapVal[0] < memo.begin) {
         memo.begin = mapVal[0];
@@ -184,13 +184,13 @@ var getRawTextInHeader = function (orig_md_text, tokens: Token[], header) {
   }
 }
 
-var questmarkOptions = getQuestmarkOptions(X);
-var context = (questmarkOptions.hasOwnProperty('initial-context') ? questmarkOptions['initial-context'] : {});
-var currentState = (questmarkOptions.hasOwnProperty('initial-state') ? questmarkOptions['initial-state'] : "InitialState");
-var allHeaders = getHeaders(X);
-var previousErrors = [];
+const questmarkOptions = getQuestmarkOptions(X);
+const context = (questmarkOptions.hasOwnProperty('initial-context') ? questmarkOptions['initial-context'] : {});
+let currentState = (questmarkOptions.hasOwnProperty('initial-state') ? questmarkOptions['initial-state'] : "InitialState");
+const allHeaders = getHeaders(X);
+const previousErrors = [];
 
-var execCode = function (data, previousErrors) {
+function execCode(data, previousErrors) {
   try {
     return eval(data);
   } catch (e) {
@@ -199,7 +199,7 @@ var execCode = function (data, previousErrors) {
   }
 }
 
-var processTokens = function (tokens: Token[], previousErrors) {
+function processTokens(tokens: Token[], previousErrors) {
   return _.compact(_.map(tokens, function (x) {
     if (x.type === 'code_inline') {
       const retval = execCode(x.content, previousErrors);
@@ -213,10 +213,7 @@ var processTokens = function (tokens: Token[], previousErrors) {
       x.children = processTokens(x.children, previousErrors);
       if (x.children.length > 0) {
         x.content = _.reduce(x.children, function (memo, child) {
-          var ncontent = child.content;
-          if (child.type === 'softbreak') {
-            ncontent = '\n';
-          }
+          const ncontent = child.type === 'softbreak' ? '\n' : child.content;
           return memo + ncontent;
         }, "");
       }
@@ -234,7 +231,9 @@ function parseState() {
       console.log(colors.red.bold("Warning: error occurred: " + previousError.toString()));
     })
   }
-  previousErrors = [];
+  while (previousErrors.length > 0) {
+    previousErrors.pop();
+  }
   const textInHeader = getRawTextInHeader(md_src, X, currentState);
   const templateFunc = dot.template(textInHeader);
   const state_markdown = templateFunc(context);
