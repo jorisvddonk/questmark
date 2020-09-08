@@ -345,12 +345,11 @@ export class VM {
 const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "emit": (stack: Stack) => {
     const [str1] = getStackParams("emit", ["string | number"], stack) as [string | number];
-    console.log(`emit: ${str1}`);
+    process.stdout.write(`${str1}`);
     return null;
   },
   "response": (stack: Stack, context: Context, vm: VM) => {
     const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
-    console.log(`response: ${str1} ${num1}`);
     if (this.responses === undefined) {
       this.responses = [];
     }
@@ -360,7 +359,6 @@ const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "getResponse": (stack: Stack, context: Context, vm: VM) => {
     const inquirer = require('inquirer');
     vm.pause = true;
-    console.log(`getResponse: ${JSON.stringify(this.responses)}`);
     inquirer.prompt([{
       type: "list",
       name: "selection",
