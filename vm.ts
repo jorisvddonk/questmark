@@ -8,11 +8,13 @@ export type Instruction = NumberPushOperation | StringPushOperation | FunctionIn
 export type Stack = Array<string | number>;
 export type Context = { [key: string]: string | number | null }
 export type Instructions = Array<Instruction>;
+export type LabelMap = { [key: string]: number };
 export type Functions = { [key: string]: FunctionInvocationOperation };
 
-const stringPushOperationRegexp = /^\"(\S+)\"$/;
+const stringPushOperationRegexp = /^\"(.+)\"$/;
 const numberPushOperationRegexp = /^([0-9]+)$/;
 const functionInvocationOperationRegexp = /^(\S+)$/;
+const labelInstructionRegexp = /^\#(\S+)$/;
 
 const getStackParams = (functionName: string, paramTypes: Array<"string" | "number" | "string | number">, stack: Stack) => {
   /**
@@ -113,11 +115,33 @@ export const std_functions: Functions = {
 export class VM {
   stack: Stack = [];
   context: Context = {};
+  programList: Instruction[] = [];
+  labelMap: LabelMap = {};
   functions: Functions;
+
+  programCounter: number = 0;
+  exit: boolean = false;
 
   constructor(initialContext: Context, additionalFunctions: Functions = {}) {
     this.context = initialContext;
-    this.functions = { ...std_functions, ...additionalFunctions };
+    this.functions = {
+      ...std_functions, ...additionalFunctions, ...{
+        "goto": (stack: Stack) => {
+          const [str1] = getStackParams("goto", ["string"], stack) as [string];
+          const newPC = this.labelMap[str1];
+          if (newPC === undefined) {
+            throw new Error(`goto: attempting to jump to undefined label ${str1}`);
+          }
+          console.log(`goto: setting pC to ${newPC} `);
+          this.programCounter = newPC;
+          return null;
+        },
+        "exit": (stack: Stack) => {
+          this.exit = true;
+          return null;
+        }
+      }
+    };
   }
 
   invoke(instructions: Instructions) {
@@ -191,7 +215,21 @@ export class VM {
      * if loadIntoProgramList is true, this may have a side effect!
      */
     const tokens = this.tokenize(codeBlock);
+    const labelMap: LabelMap = {};
+    let i = 0;
     const instructions: Instructions = tokens.map(token => {
+      const matchLabelInstruction = token.match(labelInstructionRegexp);
+      if (matchLabelInstruction !== null) {
+        const label = matchLabelInstruction[1];
+        if (loadIntoProgramList === false) {
+          throw new Error("Label found, but label definitions are not allowed here!");
+        }
+        labelMap[label] = i;
+        return undefined;
+      }
+
+      i += 1;
+
       const matchStringPushOp = token.match(stringPushOperationRegexp);
       if (matchStringPushOp !== null) {
         const stringToPush = matchStringPushOp[1];
@@ -221,26 +259,82 @@ export class VM {
       }
 
       throw new Error(`Could not parse token: \`${token}\``);
-    });
+    }).filter(instr => instr !== undefined);
+
+    if (loadIntoProgramList) {
+      this.programList = instructions;
+      this.labelMap = labelMap;
+    }
+
     return instructions;
   }
 
-  exec(codeBlock: string) {
-    const parsedBlock = this.parseCodeBlock(codeBlock);
+  eval(codeBlock: string) {
+    /**
+     * Execute a bit of code, without pushing it to the program list
+     */
+    const parsedBlock = this.parseCodeBlock(codeBlock, false);
     return this.invoke(parsedBlock);
+  }
+
+  load(codeBlock: string) {
+    const parsedBlock = this.parseCodeBlock(codeBlock, true);
+    return parsedBlock;
+  }
+
+  setProgramCounter(c: number) {
+    this.programCounter = c;
+  }
+
+  tick() {
+    /**
+     * Execute one instruction from program list
+     */
+    const func = this.programList[this.programCounter];
+    this.programCounter += 1;
+    if (func === undefined) {
+      this.exit = true;
+      return null;
+    }
+    return func(this.stack, this.context);
+  }
+
+  run() {
+    while (this.exit !== true) {
+      this.tick();
+    }
   }
 }
 
 /*
 // Invocation examples:
 const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
-  "goto": (stack: Stack) => {
-    const [str1] = getStackParams("goto", ["string"], stack) as [string];
-    console.log(`TODO: implement goto(${str1})`);
+  "emit": (stack: Stack) => {
+    const [str1] = getStackParams("emit", ["string"], stack) as [string];
+    console.log(`emit: ${str1}`);
     return null;
-  },
+  }
 });
-vm.exec(`"NORMAL_HELLO_" 8 randInt 64 + charCode rconcat goto`);
-vm.exec(`"captainName" getContext`);
-vm.exec(`0 "have_minerals" getContext gt`);
+vm.eval(`"captainName" getContext`);
+vm.eval(`0 "have_minerals" getContext gt`);
+vm.load(`"main" goto
+#NORMAL_HELLO_A
+"HELLO A" emit exit
+#NORMAL_HELLO_B
+"HELLO B" emit exit
+#NORMAL_HELLO_C
+"HELLO C" emit exit
+#NORMAL_HELLO_D
+"HELLO D" emit exit
+#NORMAL_HELLO_E
+"HELLO E" emit exit
+#NORMAL_HELLO_F
+"HELLO F" emit exit
+#NORMAL_HELLO_G
+"HELLO G" emit exit
+#NORMAL_HELLO_H
+"HELLO H" emit exit
+#main
+"NORMAL_HELLO_" 8 randInt 65 + charCode rconcat goto`);
+vm.run();
 */
