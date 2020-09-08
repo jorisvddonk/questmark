@@ -315,12 +315,16 @@ export class VM {
      * Execute one instruction from program list
      */
     const instruction = this.programList[this.programCounter];
-    this.programCounter += 1;
     if (instruction === undefined) {
       this.exit = true;
       return null;
     }
-    return instruction(this.stack, this.context, this);
+    const oldPC = this.programCounter;
+    const retVal = instruction(this.stack, this.context, this);
+    if (this.programCounter === oldPC) { // if the program counter did not change, increment by one!
+      this.programCounter += 1;
+    }
+    return retVal;
   }
 
   run() {
@@ -330,7 +334,6 @@ export class VM {
   }
 }
 
-/*
 // Invocation examples:
 const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "emit": (stack: Stack) => {
@@ -341,7 +344,7 @@ const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "response": (stack: Stack, context: Context, vm: VM) => {
     const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
     console.log(`response: ${str1} ${num1}`);
-    vm.programCounter = num1 - 1; // vm will increment by one after invocation of this function // TODO: make sure it does not
+    vm.programCounter = num1;
     return null;
   }
 });
@@ -376,4 +379,3 @@ response
 #main
 "NORMAL_HELLO_" 2 randInt 65 + charCode rconcat goto`);
 vm.run();
-*/
