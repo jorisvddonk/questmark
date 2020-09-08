@@ -164,7 +164,7 @@ export class VM {
         },
         "{": openBraceFunction,
         "}": closeBraceFunction
-        }
+      }
     };
   }
 
@@ -334,31 +334,46 @@ export class VM {
 // Invocation examples:
 const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "emit": (stack: Stack) => {
-    const [str1] = getStackParams("emit", ["string"], stack) as [string];
+    const [str1] = getStackParams("emit", ["string | number"], stack) as [string | number];
     console.log(`emit: ${str1}`);
+    return null;
+  },
+  "response": (stack: Stack, context: Context, vm: VM) => {
+    const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
+    console.log(`response: ${str1} ${num1}`);
+    vm.programCounter = num1 - 1; // vm will increment by one after invocation of this function // TODO: make sure it does not
     return null;
   }
 });
 vm.eval(`"captainName" getContext`);
 vm.eval(`0 "have_minerals" getContext gt`);
-vm.load(`"main" goto
+vm.load(`1 "cookies" setContext "main" goto
 #NORMAL_HELLO_A
-"HELLO A" emit exit
+"HELLO A" emit
+"Buy cookie"
+{
+"Buying cookie..."
+emit
+"cookies"
+getContext
+1
++
+"cookies"
+setContext
+"You now have "
+emit
+"cookies"
+getContext
+emit
+" cookies!"
+emit
+"main"
+goto
+}
+response
 #NORMAL_HELLO_B
-"HELLO B" emit exit
-#NORMAL_HELLO_C
-"HELLO C" emit exit
-#NORMAL_HELLO_D
-"HELLO D" emit exit
-#NORMAL_HELLO_E
-"HELLO E" emit exit
-#NORMAL_HELLO_F
-"HELLO F" emit exit
-#NORMAL_HELLO_G
-"HELLO G" emit exit
-#NORMAL_HELLO_H
-"HELLO H" emit exit
+"Sorry, we have no cookies anymore!" emit exit
 #main
-"NORMAL_HELLO_" 8 randInt 65 + charCode rconcat goto`);
+"NORMAL_HELLO_" 2 randInt 65 + charCode rconcat goto`);
 vm.run();
 */
