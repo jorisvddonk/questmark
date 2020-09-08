@@ -1,3 +1,5 @@
+import debug from "debug";
+
 export type NumberPushOperation = (stack: Stack, context?: Context) => number;
 export type StringPushOperation = (stack: Stack, context?: Context) => string;
 export type FunctionInvocationOperation = (stack: Stack, context: Context, vm?: VM) => string | number | Array<string | number> | null;
@@ -15,6 +17,8 @@ const stringPushOperationRegexp = /^\"(.+)\"$/;
 const numberPushOperationRegexp = /^([0-9]+)$/;
 const functionInvocationOperationRegexp = /^(\S+)$/;
 const labelInstructionRegexp = /^\#(\S+)$/;
+
+const logger = debug("questmark-vm");
 
 const getStackParams = (functionName: string, paramTypes: Array<"string" | "number" | "string | number">, stack: Stack) => {
   /**
@@ -155,7 +159,7 @@ export class VM {
           if (newPC === undefined) {
             throw new Error(`goto: attempting to jump to undefined label ${str1}`);
           }
-          console.log(`goto: setting pC to ${newPC} `);
+          logger(`goto: setting pC to ${newPC} `);
           this.programCounter = newPC;
           return null;
         },
@@ -170,13 +174,13 @@ export class VM {
   }
 
   invoke(instructions: Instructions) {
-    console.log("invoking!");
+    logger("invoking!");
     let retval: ReturnType<Instruction> = undefined;
     instructions.forEach(instruction => {
-      console.log(`stack (json): ${JSON.stringify(this.stack)}`);
+      logger(`stack (json): ${JSON.stringify(this.stack)}`);
       retval = instruction(this.stack, this.context, this);
     });
-    console.log(`done! return value: ${retval}, final stack: ${JSON.stringify(this.stack)}, final context: ${JSON.stringify(this.context)}`);
+    logger(`done! return value: ${retval}, final stack: ${JSON.stringify(this.stack)}, final context: ${JSON.stringify(this.context)}`);
     return retval;
   }
 
