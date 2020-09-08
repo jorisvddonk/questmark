@@ -1,6 +1,6 @@
 export type NumberPushOperation = (stack: Stack, context?: Context) => number;
 export type StringPushOperation = (stack: Stack, context?: Context) => string;
-export type FunctionInvocationOperation = (stack: Stack, context: Context) => string | number | Array<string | number> | null;
+export type FunctionInvocationOperation = (stack: Stack, context: Context, vm?: VM) => string | number | Array<string | number> | null;
 
 export type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
 export type Instruction = NumberPushOperation | StringPushOperation | FunctionInvocationOperation;
@@ -149,7 +149,7 @@ export class VM {
     let retval: ReturnType<Instruction> = undefined;
     instructions.forEach(instruction => {
       console.log(`stack (json): ${JSON.stringify(this.stack)}`);
-      retval = instruction(this.stack, this.context);
+      retval = instruction(this.stack, this.context, this);
     });
     console.log(`done! return value: ${retval}, final stack: ${JSON.stringify(this.stack)}, final context: ${JSON.stringify(this.context)}`);
     return retval;
@@ -290,13 +290,13 @@ export class VM {
     /**
      * Execute one instruction from program list
      */
-    const func = this.programList[this.programCounter];
+    const instruction = this.programList[this.programCounter];
     this.programCounter += 1;
-    if (func === undefined) {
+    if (instruction === undefined) {
       this.exit = true;
       return null;
     }
-    return func(this.stack, this.context);
+    return instruction(this.stack, this.context, this);
   }
 
   run() {
