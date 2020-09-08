@@ -121,6 +121,7 @@ export class VM {
 
   programCounter: number = 0;
   exit: boolean = false;
+  pause: boolean = false;
 
   constructor(initialContext: Context, additionalFunctions: Functions = {}) {
     this.context = initialContext;
@@ -328,7 +329,8 @@ export class VM {
   }
 
   run() {
-    while (this.exit !== true) {
+    this.pause = false;
+    while (this.exit !== true && this.pause as any !== true) {
       this.tick();
     }
   }
