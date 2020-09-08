@@ -28,7 +28,7 @@ const getStackParams = (functionName: string, paramTypes: Array<"string" | "numb
       }
     } else {
       if (typeof val !== paramType) {
-        throw new Error(`${functionName}: stack param ${i + 1} is not a ${paramType}!`);
+        throw new Error(`${functionName}: stack param ${i + 1} is not a ${paramType}! Value: ${val}`);
       }
     }
     return val;
@@ -82,7 +82,7 @@ export const std_functions: Functions = {
     const [str1] = getStackParams("getContext", ["string"], stack) as [string];
     const retval = context[str1];
     if (retval === null || retval === undefined) {
-      throw new Error("getContext: null/undefined can not be pushed to the context!");
+      throw new Error(`getContext: null/undefined can not be pushed to the context! StackParam: ${str1}`);
     }
     stack.push(retval);
     return retval;
