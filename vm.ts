@@ -336,6 +336,7 @@ export class VM {
   }
 }
 
+/*
 // Invocation examples:
 const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "emit": (stack: Stack) => {
@@ -346,7 +347,26 @@ const vm = new VM({ "captainName": "Zelnick", "have_minerals": 200 }, {
   "response": (stack: Stack, context: Context, vm: VM) => {
     const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
     console.log(`response: ${str1} ${num1}`);
-    vm.programCounter = num1;
+    if (this.responses === undefined) {
+      this.responses = [];
+    }
+    this.responses.push({ response: str1, pc: num1 });
+    return null;
+  },
+  "getResponse": (stack: Stack, context: Context, vm: VM) => {
+    const inquirer = require('inquirer');
+    vm.pause = true;
+    console.log(`getResponse: ${JSON.stringify(this.responses)}`);
+    inquirer.prompt([{
+      type: "list",
+      name: "selection",
+      message: " ",
+      choices: this.responses.map(resp => { return { name: resp.response, value: resp.pc } })
+    }]).then(answers => {
+      vm.programCounter = (answers.selection);
+      vm.run();
+    });
+    this.responses = []; // clear responses, so that current responses won't appear again next time
     return null;
   }
 });
@@ -376,8 +396,20 @@ emit
 goto
 }
 response
+"Leave the store"
+{
+"exit"
+goto
+}
+response
+getResponse
 #NORMAL_HELLO_B
 "Sorry, we have no cookies anymore!" emit exit
 #main
-"NORMAL_HELLO_" 2 randInt 65 + charCode rconcat goto`);
+"NORMAL_HELLO_" 2 randInt 65 + charCode rconcat goto
+#exit
+"See you again!"
+emit
+exit`);
 vm.run();
+*/
