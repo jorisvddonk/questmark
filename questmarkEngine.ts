@@ -233,7 +233,7 @@ export class QuestmarkEngine {
   }
 
   execCode(data: string) {
-    return this.vm.exec(data);
+    return this.vm.eval(data);
   }
 
   parseState() {
