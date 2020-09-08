@@ -131,8 +131,66 @@ export class VM {
     return retval;
   }
 
-  parseCodeBlock(codeBlock: string) {
-    const tokens = codeBlock.split(/\s+/);
+  tokenize(codeBlock: string) {
+    let parsing: "string" | null = null;
+    let partial_parse = "";
+    let i = 0;
+    const tokens = [];
+
+    function addTokenMaybe() {
+      if (partial_parse.length > 0) {
+        tokens.push(partial_parse);
+        partial_parse = "";
+      }
+    }
+
+    while (true) {
+      const c = codeBlock[i];
+      if (c === '"') { // todo: add escape support ( \" )
+        if (parsing === "string") {
+          parsing = null;
+          partial_parse = `${partial_parse}${c}`;
+          i += 1;
+          addTokenMaybe();
+          continue;
+        } else if (parsing === null) {
+          parsing = "string";
+          partial_parse = `${partial_parse}${c}`;
+          i += 1;
+          continue;
+        }
+      }
+
+      if (parsing === "string") {
+        partial_parse = `${partial_parse}${c}`;
+        i += 1;
+        continue;
+      }
+
+      if (c === undefined) {
+        addTokenMaybe();
+        break;
+      }
+
+      if (c.match(/\s/) !== null) {
+        addTokenMaybe();
+        i += 1;
+        continue;
+      }
+
+      partial_parse = `${partial_parse}${c}`;
+      i += 1;
+    }
+
+    return tokens;
+  }
+
+  parseCodeBlock(codeBlock: string, loadIntoProgramList?: boolean) {
+    /**
+     * Parse a code block
+     * if loadIntoProgramList is true, this may have a side effect!
+     */
+    const tokens = this.tokenize(codeBlock);
     const instructions: Instructions = tokens.map(token => {
       const matchStringPushOp = token.match(stringPushOperationRegexp);
       if (matchStringPushOp !== null) {
