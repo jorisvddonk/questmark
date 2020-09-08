@@ -124,6 +124,28 @@ export class VM {
 
   constructor(initialContext: Context, additionalFunctions: Functions = {}) {
     this.context = initialContext;
+    const openBraceFunction = (stack: Stack) => { // jump to matching brace (source): push current programCounter plus one to stack, then jump to matching brace
+      this.stack.push(this.programCounter + 1);
+      let i = 0;
+      let pc = this.programCounter + 1;
+      while (true) {
+        if (this.programList[pc] === openBraceFunction) {
+          i += 1;
+        }
+        if (this.programList[pc] === closeBraceFunction) {
+          i -= 1;
+          if (i === -1) {
+            this.programCounter = pc + 1;
+            break;
+          }
+        }
+        pc += 1;
+      }
+      return null;
+    };
+    const closeBraceFunction = (stack: Stack) => { // jump to matching brace (target))
+      throw new Error("Cannot invoke `}` as function!");
+    }
     this.functions = {
       ...std_functions, ...additionalFunctions, ...{
         "goto": (stack: Stack) => {
@@ -139,8 +161,10 @@ export class VM {
         "exit": (stack: Stack) => {
           this.exit = true;
           return null;
+        },
+        "{": openBraceFunction,
+        "}": closeBraceFunction
         }
-      }
     };
   }
 
