@@ -129,18 +129,18 @@ export class VM {
 
   constructor(initialContext: Context, additionalFunctions: Functions = {}) {
     this.context = initialContext;
-    const openBraceFunction = (stack: Stack) => { // jump to matching brace (source): push current programCounter plus one to stack, then jump to matching brace
-      this.stack.push(this.programCounter + 1);
+    const openBraceFunction = (stack: Stack, context: Context, vm: VM) => { // jump to matching brace (source): push current programCounter plus one to stack, then jump to matching brace
+      vm.stack.push(vm.programCounter + 1);
       let i = 0;
-      let pc = this.programCounter + 1;
+      let pc = vm.programCounter + 1;
       while (true) {
-        if (this.programList[pc] === openBraceFunction) {
+        if (vm.programList[pc] === openBraceFunction) {
           i += 1;
         }
-        if (this.programList[pc] === closeBraceFunction) {
+        if (vm.programList[pc] === closeBraceFunction) {
           i -= 1;
           if (i === -1) {
-            this.programCounter = pc + 1;
+            vm.programCounter = pc + 1;
             break;
           }
         }
