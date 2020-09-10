@@ -23,7 +23,7 @@ You have `"cookies" getContext emit` cookies!
 
 # NORMAL_HELLO_B
 
-Sorry, we have no cookies anymore!
+Sorry, we have no cookies in store today!
 `exit`
 
 # buyCookie
@@ -31,7 +31,7 @@ Sorry, we have no cookies anymore!
 Buying cookie...
 `"cookies" getContext 1 + "cookies" setContext`
 You now have `"cookies" getContext emit` cookies!
-`"main" goto`
+`"NORMAL_HELLO_A" goto`
 
 # exit
 
