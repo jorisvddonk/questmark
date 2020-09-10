@@ -1,4 +1,4 @@
-import mdast, { Parent } from "mdast";
+import mdast, { Parent, Literal } from "mdast";
 import fs from "fs";
 import fromMarkdown from "mdast-util-from-markdown";
 import { TestFunction } from "unist-util-is";
@@ -11,11 +11,33 @@ import map from "unist-util-map";
 import flatFilter from "unist-util-flat-filter";
 import { Node } from "unist";
 import visitParents from "unist-util-visit-parents";
-import visit from "unist-util-visit";
+import visit, { Visitor } from "unist-util-visit";
 import u from "unist-builder";
 import 'array-flat-polyfill';
+import { Stack, Context, InstructionOperation, LabelMap, Functions, Instruction, PushNumberInstruction, instructiontype, PushStringInstruction, InvokeFunctionInstruction } from "./vm";
+import { Tokenizer, pushString, pushNumber, invokeFunction } from "./tokenizer";
 const doc = fs.readFileSync("./examples/cookieStore.md");
 const tree = fromMarkdown(doc);
+
+export type OptionNode = Node & {
+  type: "option",
+  precondition: null | string,
+  effect: null | string,
+  text: null | string,
+  link: null | string,
+}
+
+type questmarkVMStateOptions = {
+  stack: Stack;
+  context: Context;
+  programList: Instruction[];
+  labelMap: LabelMap;
+  programCounter: number;
+  exit: boolean;
+  pause: boolean;
+}
+
+export type QuestMarkVMState = Node & questmarkVMStateOptions;
 
 
 const root = u('questmarkDocument', { options: {} }, []);
@@ -86,7 +108,7 @@ function createStateNode(x: Node, name: string, children: Node[]) {
   const options: Node[] = listItemsAsParagraphs.map((li: Parent) => {
     // li's `link` / `text` children are the main links / options
     // li's `inlineCode` children are either precondition or effect code blocks
-    const optionNode = u("option", { precondition: null, effect: null, text: null, link: null });
+    const optionNode: OptionNode = u("option", { precondition: null, effect: null, text: null, link: null });
     const preconditionBound = li.children.find(x => x.type === "text" || x.type === "link");
     const effectBound = li.children.reduceRight((memo, child) => {
       if (memo) {
@@ -132,6 +154,8 @@ function createStateNode(x: Node, name: string, children: Node[]) {
   stateNode.options = options;
   return stateNode;
 }
+
+fs.writeFileSync('parsed_md_file.json', JSON.stringify(removePosition(root, true), null, 2));
 
 
 
