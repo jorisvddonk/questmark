@@ -16,8 +16,6 @@ import u from "unist-builder";
 import 'array-flat-polyfill';
 import { Stack, Context, InstructionOperation, LabelMap, Functions, Instruction, PushNumberInstruction, instructiontype, PushStringInstruction, InvokeFunctionInstruction } from "./vm";
 import { Tokenizer, pushString, pushNumber, invokeFunction } from "./tokenizer";
-const doc = fs.readFileSync("./examples/cookieStore.md");
-const tree = fromMarkdown(doc);
 
 export type OptionNode = Node & {
   type: "option",
@@ -27,7 +25,7 @@ export type OptionNode = Node & {
   link: null | string,
 }
 
-type questmarkVMStateOptions = {
+export type questmarkVMStateOptions = {
   stack: Stack;
   context: Context;
   programList: Instruction[];
@@ -39,202 +37,205 @@ type questmarkVMStateOptions = {
 
 export type QuestMarkVMState = Node & questmarkVMStateOptions;
 
+export function parseMarkdown(file_contents: string) {
+  const tree = fromMarkdown(file_contents);
+  const root = u('questmarkDocument', { options: {} }, []);
+  visitParents(tree, 'heading', (x, ancestors) => {
+    if (ancestors.length > 1) {
+      return;
+    }
 
-const root = u('questmarkDocument', { options: {} }, []);
-visitParents(tree, 'heading', (x, ancestors) => {
-  if (ancestors.length > 1) {
-    return;
-  }
+    // capture name
+    let name = "";
+    visitParents(x, 'text', t => {
+      name = `${name} ${(t as any).value}`
+    });
+    name = name.trim();
 
-  // capture name
-  let name = "";
-  visitParents(x, 'text', t => {
-    name = `${name} ${(t as any).value}`
-  });
-  name = name.trim();
+    // capture children belonging to this heading group
+    const nextHeading = findAfter(tree, x, 'heading');
+    const children = nextHeading !== null ? findAllBetween(tree, x, nextHeading) : findAllAfter(tree, x);
 
-  // capture children belonging to this heading group
-  const nextHeading = findAfter(tree, x, 'heading');
-  const children = nextHeading !== null ? findAllBetween(tree, x, nextHeading) : findAllAfter(tree, x);
-
-  if (name === "QUESTMARK-OPTIONS-HEADER") {
-    root.options = getQuestmarkOptions(x, children);
-  } else {
-    root.children.push(createStateNode(x, name, children));
-  }
-});
-
-function getQuestmarkOptions(x: Node, children: Node[]) {
-  let code = '';
-  visit(u('bla', children), 'code', n => {
-    code = `${code} ${n.value}`;
-  });
-  return JSON.parse(code.trim());
-}
-
-function createStateNode(x: Node, name: string, children: Node[]) {
-  // create new state node
-  const stateNode = u('state', { name, options: [] }, []);
-
-  // capture children
-  // children are all nodes until either the next heading, or end of tree,
-  //  but nodes of a type other than 'list' with ordered === false.
-  stateNode.children = children.filter(n => {
-    if (n.type !== 'list') {
-      return true;
+    if (name === "QUESTMARK-OPTIONS-HEADER") {
+      root.options = getQuestmarkOptions(x, children);
     } else {
-      return n.ordered === true;
+      root.children.push(createStateNode(x, name, children));
     }
   });
 
-  // capture options
-  const listItemTest: TestFunction<Node> = (z: Node): z is Node => {
-    return z.type === "listItem"
-  };
-  const paragraphTest: TestFunction<Node> = (z: Node): z is Node => {
-    return z.type === "paragraph"
-  };
-  const linkOrText: TestFunction<Node> = (z: Node): z is Node => {
-    return z.type === "link" || z.type === 'text';
-  };
+  function getQuestmarkOptions(x: Node, children: Node[]) {
+    let code = '';
+    visit(u('bla', children), 'code', n => {
+      code = `${code} ${n.value}`;
+    });
+    return JSON.parse(code.trim());
+  }
 
-  const listItemsAsParagraphs: Node[] = children.filter(n => {
-    if (n.type === 'list') {
-      return n.ordered === false;
-    } else {
-      return false;
-    }
-  }).map(l => flatFilter(l, listItemTest)).map(l => flatFilter(l, paragraphTest)).flatMap(l => l.children) as Node[];
-  const options: Node[] = listItemsAsParagraphs.map((li: Parent) => {
-    // li's `link` / `text` children are the main links / options
-    // li's `inlineCode` children are either precondition or effect code blocks
-    const optionNode: OptionNode = u("option", { precondition: null, effect: null, text: null, link: null });
-    const preconditionBound = li.children.find(x => x.type === "text" || x.type === "link");
-    const effectBound = li.children.reduceRight((memo, child) => {
-      if (memo) {
-        return memo;
-      }
-      if (child.type !== "inlineCode") {
-        return child;
-      }
-    }, undefined);
-    const preconditions = preconditionBound !== undefined ? li.children.slice(0, li.children.indexOf(preconditionBound)) : [];
-    const linkTexts = li.children.slice(li.children.indexOf(preconditionBound), li.children.indexOf(effectBound));
-    const effects = effectBound !== undefined ? li.children.slice(li.children.indexOf(effectBound) + 1) : [];
-    optionNode.precondition = preconditions.map(p => p.value).join(" ");
-    optionNode.effect = effects.map(p => p.value).join(" ");
-    let text = [];
-    visit(li, 'text', n => {
-      if (n.value) {
-        text.push(n.value);
+  function createStateNode(x: Node, name: string, children: Node[]) {
+    // create new state node
+    const stateNode = u('state', { name, options: [] }, []);
+
+    // capture children
+    // children are all nodes until either the next heading, or end of tree,
+    //  but nodes of a type other than 'list' with ordered === false.
+    stateNode.children = children.filter(n => {
+      if (n.type !== 'list') {
+        return true;
+      } else {
+        return n.ordered === true;
       }
     });
-    let link = [];
-    visit(li, 'link', n => {
-      if (n.url) {
-        link.push(n.url);
+
+    // capture options
+    const listItemTest: TestFunction<Node> = (z: Node): z is Node => {
+      return z.type === "listItem"
+    };
+    const paragraphTest: TestFunction<Node> = (z: Node): z is Node => {
+      return z.type === "paragraph"
+    };
+    const linkOrText: TestFunction<Node> = (z: Node): z is Node => {
+      return z.type === "link" || z.type === 'text';
+    };
+
+    const listItemsAsParagraphs: Node[] = children.filter(n => {
+      if (n.type === 'list') {
+        return n.ordered === false;
+      } else {
+        return false;
       }
-    });
-    optionNode.text = text.join(" ").trim();
-    optionNode.link = link.join(" ");
-    if (optionNode.precondition.length === 0) {
-      optionNode.precondition = null;
-    }
-    if (optionNode.effect.length === 0) {
-      optionNode.effect = null;
-    }
-    if (optionNode.link.length === 0) {
-      optionNode.link = null;
-    }
-    if (optionNode.text.length === 0) {
-      optionNode.text = null;
-    }
-    return optionNode;
-  });
-  stateNode.options = options;
-  return stateNode;
-}
-
-fs.writeFileSync('parsed_md_file.json', JSON.stringify(removePosition(root, true), null, 2));
-
-const qvmState = u("questmarkVMState", {
-  stack: [],
-  context: {},
-  programList: [],
-  labelMap: {},
-  programCounter: 0,
-  exit: false,
-  pause: false
-} as questmarkVMStateOptions, []);
-
-const q = (a) => {
-  qvmState.programList.push(a);
-}
-const visitorFunc: Visitor<Node> = (node, index, parent) => {
-  if (parent === undefined && node.type !== "questmarkDocument") {
-    return;
-  }
-  switch (node.type) {
-    case "questmarkDocument":
-      if (node.options) {
-        if (node.options["initial-context"]) {
-          Object.entries(node.options["initial-context"]).forEach(entry => {
-            if (typeof entry[1] === "string") {
-              q(pushString(entry[1]));
-            } else if (typeof entry[1] === "number") {
-              q(pushNumber(entry[1]));
-            }
-            q(pushString(entry[0]));
-            q(invokeFunction("setContext"));
-          })
+    }).map(l => flatFilter(l, listItemTest)).map(l => flatFilter(l, paragraphTest)).flatMap(l => l.children) as Node[];
+    const options: Node[] = listItemsAsParagraphs.map((li: Parent) => {
+      // li's `link` / `text` children are the main links / options
+      // li's `inlineCode` children are either precondition or effect code blocks
+      const optionNode: OptionNode = u("option", { precondition: null, effect: null, text: null, link: null });
+      const preconditionBound = li.children.find(x => x.type === "text" || x.type === "link");
+      const effectBound = li.children.reduceRight((memo, child) => {
+        if (memo) {
+          return memo;
         }
-        if (node.options["initial-state"]) {
-          q(pushString(node.options["initial-state"]));
-          q(invokeFunction("goto"));
+        if (child.type !== "inlineCode") {
+          return child;
         }
-      }
-      break;
-    case "state":
-      qvmState.labelMap[node.name as string] = qvmState.programList.length;
-      visit(node, visitorFunc); // parse children immediately, before we parse the node's options
-      (node.options as OptionNode[]).forEach(option => {
-        // TODO: figure out how to support precondition, then support it!
-        if (option.text !== null) {
-          q(pushString(option.text)) // TODO: support inlineCode in options. Can do via `concat`.
+      }, undefined);
+      const preconditions = preconditionBound !== undefined ? li.children.slice(0, li.children.indexOf(preconditionBound)) : [];
+      const linkTexts = li.children.slice(li.children.indexOf(preconditionBound), li.children.indexOf(effectBound));
+      const effects = effectBound !== undefined ? li.children.slice(li.children.indexOf(effectBound) + 1) : [];
+      optionNode.precondition = preconditions.map(p => p.value).join(" ");
+      optionNode.effect = effects.map(p => p.value).join(" ");
+      let text = [];
+      visit(li, 'text', n => {
+        if (n.value) {
+          text.push(n.value);
         }
-        q(invokeFunction("{"));
-        if (option.effect !== null) {
-          const tokenizer = new Tokenizer();
-          tokenizer.transform(tokenizer.tokenize(option.effect)).instructions.forEach(i => q(i));
-        }
-        if (option.link !== null) {
-          q(pushString(option.link.substr(1)));
-          q(invokeFunction("goto"));
-        }
-        q(invokeFunction("}"));
-        q(invokeFunction("response"));
       });
-      q(invokeFunction("getResponse"));
-      return "skip";
-      // children have been parsed earlier
-      break;
-    case "inlineCode":
-    case "code":
-      const tokenizer = new Tokenizer();
-      const tokens = tokenizer.tokenize(node.value as string);
-      const { instructions, labelMap } = tokenizer.transform(tokens);
-      qvmState.labelMap = Object.assign({}, qvmState.labelMap, labelMap);
-      instructions.forEach(i => q(i));
-      break;
-    case "text":
-      q(pushString(node.value as string));
-      q(invokeFunction("emit"));
-      break;
-    default:
-      break;
+      let link = [];
+      visit(li, 'link', n => {
+        if (n.url) {
+          link.push(n.url);
+        }
+      });
+      optionNode.text = text.join(" ").trim();
+      optionNode.link = link.join(" ");
+      if (optionNode.precondition.length === 0) {
+        optionNode.precondition = null;
+      }
+      if (optionNode.effect.length === 0) {
+        optionNode.effect = null;
+      }
+      if (optionNode.link.length === 0) {
+        optionNode.link = null;
+      }
+      if (optionNode.text.length === 0) {
+        optionNode.text = null;
+      }
+      return optionNode;
+    });
+    stateNode.options = options;
+    return stateNode;
   }
-};
-visit(root, visitorFunc);
-q(invokeFunction("exit")); // ensure we always exit at the end
 
-fs.writeFileSync('qvmState.json', JSON.stringify(removePosition(qvmState, true), null, 2));
+  const qvmState = u("questmarkVMState", {
+    stack: [],
+    context: {},
+    programList: [],
+    labelMap: {},
+    programCounter: 0,
+    exit: false,
+    pause: false
+  } as questmarkVMStateOptions, []);
+
+  const q = (a) => {
+    qvmState.programList.push(a);
+  }
+  const visitorFunc: Visitor<Node> = (node, index, parent) => {
+    if (parent === undefined && node.type !== "questmarkDocument") {
+      return;
+    }
+    switch (node.type) {
+      case "questmarkDocument":
+        if (node.options) {
+          if (node.options["initial-context"]) {
+            Object.entries(node.options["initial-context"]).forEach(entry => {
+              if (typeof entry[1] === "string") {
+                q(pushString(entry[1]));
+              } else if (typeof entry[1] === "number") {
+                q(pushNumber(entry[1]));
+              }
+              q(pushString(entry[0]));
+              q(invokeFunction("setContext"));
+            })
+          }
+          if (node.options["initial-state"]) {
+            q(pushString(node.options["initial-state"]));
+            q(invokeFunction("goto"));
+          }
+        }
+        break;
+      case "state":
+        qvmState.labelMap[node.name as string] = qvmState.programList.length;
+        visit(node, visitorFunc); // parse children immediately, before we parse the node's options
+        (node.options as OptionNode[]).forEach(option => {
+          // TODO: figure out how to support precondition, then support it!
+          if (option.text !== null) {
+            q(pushString(option.text)) // TODO: support inlineCode in options. Can do via `concat`.
+          }
+          q(invokeFunction("{"));
+          if (option.effect !== null) {
+            const tokenizer = new Tokenizer();
+            tokenizer.transform(tokenizer.tokenize(option.effect)).instructions.forEach(i => q(i));
+          }
+          if (option.link !== null) {
+            q(pushString(option.link.substr(1)));
+            q(invokeFunction("goto"));
+          }
+          q(invokeFunction("}"));
+          q(invokeFunction("response"));
+        });
+        q(invokeFunction("getResponse"));
+        return "skip";
+        // children have been parsed earlier
+        break;
+      case "inlineCode":
+      case "code":
+        const tokenizer = new Tokenizer();
+        const tokens = tokenizer.tokenize(node.value as string);
+        const { instructions, labelMap } = tokenizer.transform(tokens);
+        qvmState.labelMap = Object.assign({}, qvmState.labelMap, labelMap);
+        instructions.forEach(i => q(i));
+        break;
+      case "text":
+        q(pushString(node.value as string));
+        q(invokeFunction("emit"));
+        break;
+      default:
+        break;
+    }
+  };
+  visit(root, visitorFunc);
+  q(invokeFunction("exit")); // ensure we always exit at the end
+
+  return {
+    parsedMDFile: removePosition(root, true),
+    qvmState
+  }
+}
