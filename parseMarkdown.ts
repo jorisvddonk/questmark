@@ -39,6 +39,7 @@ export type QuestMarkVMState = Node & questmarkVMStateOptions;
 
 export function parseMarkdown(file_contents: string) {
   const tree = fromMarkdown(file_contents);
+  const tokenizer = new Tokenizer();
   const root = u('questmarkDocument', { options: {} }, []);
   visitParents(tree, 'heading', (x, ancestors) => {
     if (ancestors.length > 1) {
@@ -196,7 +197,9 @@ export function parseMarkdown(file_contents: string) {
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
         (node.options as OptionNode[]).forEach(option => {
           if (option.precondition !== null) {
-            // TODO: figure out how to support precondition, then support it!
+            tokenizer.transform(tokenizer.tokenize(option.precondition)).instructions.forEach(i => q(i));
+            q(invokeFunction("jgz"));
+            q(invokeFunction("{")); // precondition block start
             console.warn("Option contains a precondition. This is currently not supported!");
           }
           if (option.text !== null) {
@@ -206,9 +209,8 @@ export function parseMarkdown(file_contents: string) {
             }
             q(pushString(option.text))
           }
-          q(invokeFunction("{"));
+          q(invokeFunction("{")); // effect body start
           if (option.effect !== null) {
-            const tokenizer = new Tokenizer();
             tokenizer.transform(tokenizer.tokenize(option.effect)).instructions.forEach(i => q(i));
           }
           if (option.link !== null) {
@@ -216,8 +218,12 @@ export function parseMarkdown(file_contents: string) {
             q(invokeFunction("goto"));
           }
           q(invokeFunction("exit")); // ensure that options with no effect or link cause the VM to exit
-          q(invokeFunction("}"));
+          q(invokeFunction("}")); // effect body end
           q(invokeFunction("response"));
+          if (option.precondition !== null) {
+            // when there was a precondition, ensure we close the precondition block
+            q(invokeFunction("}")); // precondition block end
+          }
         });
         q(invokeFunction("getResponse"));
         return "skip";
@@ -225,7 +231,6 @@ export function parseMarkdown(file_contents: string) {
         break;
       case "inlineCode":
       case "code":
-        const tokenizer = new Tokenizer();
         const tokens = tokenizer.tokenize(node.value as string);
         const { instructions, labelMap } = tokenizer.transform(tokens);
         qvmState.labelMap = Object.assign({}, qvmState.labelMap, labelMap);
