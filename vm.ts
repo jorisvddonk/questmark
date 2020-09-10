@@ -14,7 +14,7 @@ export type PushStringInstruction = BaseInstruction<"push-string-instruction"> &
   value: number;
 }
 export type InvokeFunctionInstruction = BaseInstruction<"invoke-function-instruction"> & {
-  functionName: number;
+  functionName: string;
 }
 export type Instruction = PushNumberInstruction | PushStringInstruction | InvokeFunctionInstruction;
 
@@ -210,9 +210,17 @@ export class VM {
       switch (instruction.type) {
         case "invoke-function-instruction":
           const functionNameToPush = (instruction as InvokeFunctionInstruction).functionName;
-          const functionToPush = this.functions[functionNameToPush];
+          let functionToPush = this.functions[functionNameToPush];
           if (functionToPush === undefined) {
-            throw new Error(`Cannot find function in function table: ${functionNameToPush}`);
+            if (functionNameToPush.startsWith("_")) { // do not throw errors when function name starts with underscore
+              const x: FunctionInvocationOperation = () => {
+                console.warn(`Missing function got invoked: ${functionNameToPush}!`);
+                return null;
+              }
+              functionToPush = x;
+            } else {
+              throw new Error(`Cannot find function in function table: ${functionNameToPush}`);
+            }
           }
           return functionToPush;
           // debug wrapper:
