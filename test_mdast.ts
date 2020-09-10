@@ -157,6 +157,84 @@ function createStateNode(x: Node, name: string, children: Node[]) {
 
 fs.writeFileSync('parsed_md_file.json', JSON.stringify(removePosition(root, true), null, 2));
 
+const qvmState = u("questmarkVMState", {
+  stack: [],
+  context: {},
+  programList: [],
+  labelMap: {},
+  programCounter: 0,
+  exit: false,
+  pause: false
+} as questmarkVMStateOptions, []);
 
+const q = (a) => {
+  qvmState.programList.push(a);
+}
+const visitorFunc: Visitor<Node> = (node, index, parent) => {
+  if (parent === undefined && node.type !== "questmarkDocument") {
+    return;
+  }
+  switch (node.type) {
+    case "questmarkDocument":
+      if (node.options) {
+        if (node.options["initial-context"]) {
+          Object.entries(node.options["initial-context"]).forEach(entry => {
+            if (typeof entry[1] === "string") {
+              q(pushString(entry[1]));
+            } else if (typeof entry[1] === "number") {
+              q(pushNumber(entry[1]));
+            }
+            q(pushString(entry[0]));
+            q(invokeFunction("setContext"));
+          })
+        }
+        if (node.options["initial-state"]) {
+          q(pushString(node.options["initial-state"]));
+          q(invokeFunction("goto"));
+        }
+      }
+      break;
+    case "state":
+      qvmState.labelMap[node.name as string] = qvmState.programList.length;
+      visit(node, visitorFunc); // parse children immediately, before we parse the node's options
+      (node.options as OptionNode[]).forEach(option => {
+        // TODO: figure out how to support precondition, then support it!
+        if (option.text !== null) {
+          q(pushString(option.text)) // TODO: support inlineCode in options. Can do via `concat`.
+        }
+        q(invokeFunction("{"));
+        if (option.effect !== null) {
+          const tokenizer = new Tokenizer();
+          tokenizer.transform(tokenizer.tokenize(option.effect)).instructions.forEach(i => q(i));
+        }
+        if (option.link !== null) {
+          q(pushString(option.link.substr(1)));
+          q(invokeFunction("goto"));
+        }
+        q(invokeFunction("}"));
+        q(invokeFunction("response"));
+      });
+      q(invokeFunction("getResponse"));
+      return "skip";
+      // children have been parsed earlier
+      break;
+    case "inlineCode":
+    case "code":
+      const tokenizer = new Tokenizer();
+      const tokens = tokenizer.tokenize(node.value as string);
+      const { instructions, labelMap } = tokenizer.transform(tokens);
+      qvmState.labelMap = Object.assign({}, qvmState.labelMap, labelMap);
+      instructions.forEach(i => q(i));
+      break;
+    case "text":
+      q(pushString(node.value as string));
+      q(invokeFunction("emit"));
+      break;
+    default:
+      break;
+  }
+};
+visit(root, visitorFunc);
+q(invokeFunction("exit")); // ensure we always exit at the end
 
-fs.writeFileSync('bla.json', JSON.stringify(removePosition(root, true), null, 2));
+fs.writeFileSync('qvmState.json', JSON.stringify(removePosition(qvmState, true), null, 2));
