@@ -1,26 +1,40 @@
 import debug from "debug";
+import { Tokenizer, InstructionNode } from "./tokenizer";
+import visit from "unist-util-visit";
+import { QuestMarkVMState } from "./test_mdast";
+
+export type instructiontype = "push-number-instruction" | "push-string-instruction" | "invoke-function-instruction";
+export type BaseInstruction<T extends instructiontype> = {
+  type: T
+}
+export type PushNumberInstruction = BaseInstruction<"push-number-instruction"> & {
+  value: number;
+}
+export type PushStringInstruction = BaseInstruction<"push-string-instruction"> & {
+  value: number;
+}
+export type InvokeFunctionInstruction = BaseInstruction<"invoke-function-instruction"> & {
+  functionName: number;
+}
+export type Instruction = PushNumberInstruction | PushStringInstruction | InvokeFunctionInstruction;
+
 
 export type NumberPushOperation = (stack: Stack, context?: Context) => number;
 export type StringPushOperation = (stack: Stack, context?: Context) => string;
 export type FunctionInvocationOperation = (stack: Stack, context: Context, vm?: VM) => string | number | Array<string | number> | null;
 
 export type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
-export type Instruction = NumberPushOperation | StringPushOperation | FunctionInvocationOperation;
+export type InstructionOperation = NumberPushOperation | StringPushOperation | FunctionInvocationOperation;
 
 export type Stack = Array<string | number>;
 export type Context = { [key: string]: string | number | null }
-export type Instructions = Array<Instruction>;
+export type Instructions = Array<InstructionOperation>;
 export type LabelMap = { [key: string]: number };
 export type Functions = { [key: string]: FunctionInvocationOperation };
 
-const stringPushOperationRegexp = /^\"(.+)\"$/;
-const numberPushOperationRegexp = /^([0-9]+)$/;
-const functionInvocationOperationRegexp = /^(\S+)$/;
-const labelInstructionRegexp = /^\#(\S+)$/;
-
 const logger = debug("questmark-vm");
 
-const getStackParams = (functionName: string, paramTypes: Array<"string" | "number" | "string | number">, stack: Stack) => {
+export const getStackParams = (functionName: string, paramTypes: Array<"string" | "number" | "string | number">, stack: Stack) => {
   /**
    * Convenience function. Gets params from the stack and throws an error if there's an issue.
    */
@@ -119,7 +133,7 @@ export const std_functions: Functions = {
 export class VM {
   stack: Stack = [];
   context: Context = {};
-  programList: Instruction[] = [];
+  programList: InstructionOperation[] = [];
   labelMap: LabelMap = {};
   functions: Functions;
 
@@ -175,7 +189,7 @@ export class VM {
 
   invoke(instructions: Instructions) {
     logger("invoking!");
-    let retval: ReturnType<Instruction> = undefined;
+    let retval: ReturnType<InstructionOperation> = undefined;
     instructions.forEach(instruction => {
       logger(`stack (json): ${JSON.stringify(this.stack)}`);
       retval = instruction(this.stack, this.context, this);
@@ -184,118 +198,67 @@ export class VM {
     return retval;
   }
 
-  tokenize(codeBlock: string) {
-    let parsing: "string" | null = null;
-    let partial_parse = "";
-    let i = 0;
-    const tokens = [];
-
-    function addTokenMaybe() {
-      if (partial_parse.length > 0) {
-        tokens.push(partial_parse);
-        partial_parse = "";
+  getVMInstructions(instructions: InstructionNode<instructiontype>[]) {
+    const vmInstructions: InstructionOperation[] = instructions.map(instruction => {
+      switch (instruction.type) {
+        case "invoke-function-instruction":
+          const functionNameToPush = (instruction as InvokeFunctionInstruction).functionName;
+          const functionToPush = this.functions[functionNameToPush];
+          if (functionToPush === undefined) {
+            throw new Error(`Cannot find function in function table: ${functionNameToPush}`);
+          }
+          return functionToPush;
+          // debug wrapper:
+          // NOTE: breaks { and } due to the way { checks for the } function!
+          /*
+          function c() {
+            logger(`invoke: ${functionNameToPush}`);
+            functionToPush.apply(this, arguments);
+          }
+          return c as any;
+          */
+          break;
+        case "push-number-instruction":
+          return ((stack) => {
+            const v = (instruction as PushNumberInstruction).value;
+            logger(`pushNumber: ${v}`);
+            stack.push(v);
+            return instruction.value;
+          }) as NumberPushOperation;
+          break;
+        case "push-string-instruction":
+          return ((stack) => {
+            const v = (instruction as PushStringInstruction).value;
+            logger(`pushString: ${v}`);
+            stack.push(v);
+            return instruction.value;
+          }) as StringPushOperation;
+          break;
+        default:
+          throw new Error(`Unsupported instruction type: ${instruction.type}`);
       }
-    }
-
-    while (true) {
-      const c = codeBlock[i];
-      if (c === '"') { // todo: add escape support ( \" )
-        if (parsing === "string") {
-          parsing = null;
-          partial_parse = `${partial_parse}${c}`;
-          i += 1;
-          addTokenMaybe();
-          continue;
-        } else if (parsing === null) {
-          parsing = "string";
-          partial_parse = `${partial_parse}${c}`;
-          i += 1;
-          continue;
-        }
-      }
-
-      if (parsing === "string") {
-        partial_parse = `${partial_parse}${c}`;
-        i += 1;
-        continue;
-      }
-
-      if (c === undefined) {
-        addTokenMaybe();
-        break;
-      }
-
-      if (c.match(/\s/) !== null) {
-        addTokenMaybe();
-        i += 1;
-        continue;
-      }
-
-      partial_parse = `${partial_parse}${c}`;
-      i += 1;
-    }
-
-    return tokens;
+    });
+    return vmInstructions;
   }
 
   parseCodeBlock(codeBlock: string, loadIntoProgramList?: boolean) {
     /**
-     * Parse a code block
+     * Parse a codeBlock into instructions
      * if loadIntoProgramList is true, this may have a side effect!
      */
-    const tokens = this.tokenize(codeBlock);
-    const labelMap: LabelMap = {};
-    let i = 0;
-    const instructions: Instructions = tokens.map(token => {
-      const matchLabelInstruction = token.match(labelInstructionRegexp);
-      if (matchLabelInstruction !== null) {
-        const label = matchLabelInstruction[1];
-        if (loadIntoProgramList === false) {
-          throw new Error("Label found, but label definitions are not allowed here!");
-        }
-        labelMap[label] = i;
-        return undefined;
-      }
-
-      i += 1;
-
-      const matchStringPushOp = token.match(stringPushOperationRegexp);
-      if (matchStringPushOp !== null) {
-        const stringToPush = matchStringPushOp[1];
-        return ((stack) => {
-          stack.push(stringToPush);
-          return stringToPush;
-        }) as StringPushOperation;
-      }
-
-      const matchNumberPushOp = token.match(numberPushOperationRegexp);
-      if (matchNumberPushOp !== null) {
-        const numberToPush = parseInt(matchNumberPushOp[1]);
-        return ((stack) => {
-          stack.push(numberToPush);
-          return numberToPush;
-        }) as NumberPushOperation;
-      }
-
-      const matchFunctionInvocationOp = token.match(functionInvocationOperationRegexp);
-      if (matchFunctionInvocationOp !== null) {
-        const functionNameToPush = matchFunctionInvocationOp[1];
-        const functionToPush = this.functions[functionNameToPush];
-        if (functionToPush === undefined) {
-          throw new Error(`Cannot find function in function table: ${functionNameToPush}`);
-        }
-        return functionToPush;
-      }
-
-      throw new Error(`Could not parse token: \`${token}\``);
-    }).filter(instr => instr !== undefined);
-
+    const tokenizer = new Tokenizer();
+    const tokens = tokenizer.tokenize(codeBlock);
+    const { instructions, labelMap } = tokenizer.transform(tokens);
+    const vmInstructions = this.getVMInstructions(instructions);
     if (loadIntoProgramList) {
-      this.programList = instructions;
+      this.programList = vmInstructions;
       this.labelMap = labelMap;
+    } else {
+      if (Object.entries(labelMap).length > 0) {
+        throw new Error("Label found, but label definitions are not allowed here!");
+      }
     }
-
-    return instructions;
+    return vmInstructions;
   }
 
   eval(codeBlock: string) {
@@ -309,6 +272,16 @@ export class VM {
   load(codeBlock: string) {
     const parsedBlock = this.parseCodeBlock(codeBlock, true);
     return parsedBlock;
+  }
+
+  loadVMState(questmarkVMState: QuestMarkVMState) {
+    this.programList = this.getVMInstructions(questmarkVMState.programList);
+    this.labelMap = questmarkVMState.labelMap;
+    this.stack = questmarkVMState.stack;
+    this.context = questmarkVMState.context;
+    this.programCounter = questmarkVMState.programCounter;
+    this.pause = questmarkVMState.pause;
+    this.exit = questmarkVMState.exit;
   }
 
   setProgramCounter(c: number) {
