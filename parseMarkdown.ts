@@ -195,12 +195,16 @@ export function parseMarkdown(file_contents: string) {
         qvmState.labelMap[node.name as string] = qvmState.programList.length;
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
         (node.options as OptionNode[]).forEach(option => {
-          // TODO: figure out how to support precondition, then support it!
+          if (option.precondition !== null) {
+            // TODO: figure out how to support precondition, then support it!
+            console.warn("Option contains a precondition. This is currently not supported!");
+          }
           if (option.text !== null) {
             if (option.text.includes("`")) {
+              // TODO: support inlineCode in options. Can do via `concat`.
               console.warn("Option text contains a backtick. Inline code elements in option blocks is currently not supported!");
             }
-            q(pushString(option.text)) // TODO: support inlineCode in options. Can do via `concat`.
+            q(pushString(option.text))
           }
           q(invokeFunction("{"));
           if (option.effect !== null) {
