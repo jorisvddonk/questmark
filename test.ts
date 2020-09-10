@@ -20,4 +20,3 @@ const engine = new QuestmarkEngine(md_src, program.clear, program.debugging, {
     return null;
   }
 });
-engine.parseState();
