@@ -132,7 +132,7 @@ export const std_functions: Functions = {
     const [num1] = getStackParams("jgz", ["number"], stack) as [number];
     if (num1 > 0) {
       vm.programCounter += 2; // it would normally already jump one, but since we modify it won't and we have to jump over ourselves
-}
+    }
     return null;
   },
 }
@@ -170,7 +170,7 @@ export class VM {
       return null;
     };
     const closeBraceFunction = (stack: Stack) => { // jump to matching brace (target))
-      throw new Error("Cannot invoke `}` as function!");
+      return null; // do nothing. We support "executing" these so that we can have if/else statements
     }
     this.functions = {
       ...std_functions, ...additionalFunctions, ...{
