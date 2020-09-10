@@ -16,6 +16,9 @@
 
 Hello, random person!
 You have `"cookies" getContext emit` cookies!
+`0 "cookies" getContext gt jgz {`
+You have at least one cookie, so it is possible to eat a cookie!
+`}`
 
 * [Buy cookie](#buyCookie)
 * [Eat cookie](#NORMAL_HELLO_A) `1 "cookies" getContext - "cookies" setContext "You eat a cookie" emit`
