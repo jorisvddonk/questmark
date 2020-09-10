@@ -59,7 +59,7 @@ If you're interpreting this file (readme.md) via a Questmark interpreter, and th
 
 The questmark options header is designed to be flexible and extendable, and will probably be used to specify which language version is targeted, which language features should be enabled/supported, which language extensions should be loaded (if any), which runtime scripts are required to provide functionality, and maybe even which assets should be preloaded before loading the dialogue tree (think interactive fiction that has embedded images).
 
-Questmark also supports context variables that can be modified through dialogue options! For instance, context variable 'myvar' is `"myvar" getContext`. Ain't that splendid?
+Questmark also supports context variables that can be modified through dialogue options! For instance, context variable 'myvar' is `"myvar" getContext emit`. Ain't that splendid?
 
 Below are some dialogue options you'll be able to invoke. In games, these correspond with the things your character can say to the NPC you're talking with.
 
