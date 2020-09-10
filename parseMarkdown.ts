@@ -208,6 +208,7 @@ export function parseMarkdown(file_contents: string) {
             q(pushString(option.link.substr(1)));
             q(invokeFunction("goto"));
           }
+          q(invokeFunction("exit")); // ensure that options with no effect or link cause the VM to exit
           q(invokeFunction("}"));
           q(invokeFunction("response"));
         });
