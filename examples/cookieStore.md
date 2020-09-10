@@ -15,10 +15,9 @@
 # NORMAL_HELLO_A
 
 Hello, random person!
+You have `"cookies" getContext emit` cookies!
 
 * [Buy cookie](#buyCookie)
-* `precondition` [link](#link) `effect`
-* `precondition` text `effect`
 * Leave the store `"exit" goto`
 
 # NORMAL_HELLO_B
@@ -30,10 +29,10 @@ Sorry, we have no cookies anymore!
 
 Buying cookie...
 `"cookies" getContext 1 + "cookies" setContext`
-You now have `"cookies" getContext` cookies!
+You now have `"cookies" getContext emit` cookies!
 `"main" goto`
 
 # exit
 
-"See you again!"
+See you again!
 `exit`
