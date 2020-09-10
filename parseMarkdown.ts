@@ -197,6 +197,9 @@ export function parseMarkdown(file_contents: string) {
         (node.options as OptionNode[]).forEach(option => {
           // TODO: figure out how to support precondition, then support it!
           if (option.text !== null) {
+            if (option.text.includes("`")) {
+              console.warn("Option text contains a backtick. Inline code elements in option blocks is currently not supported!");
+            }
             q(pushString(option.text)) // TODO: support inlineCode in options. Can do via `concat`.
           }
           q(invokeFunction("{"));
