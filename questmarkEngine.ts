@@ -18,40 +18,103 @@ export class QuestmarkEngine {
   markdownSource: string;
   X: Token[];
   questmarkOptions = {};
-  currentState = "InitialState";
   allHeaders = [];
-  previousErrors: Error[] = [];
-  clear = false;
-  debugging = false;
   vm: VM;
 
 
   constructor(markdownSource: string, clear?: boolean, debugging?: boolean, additionalFunctions?: Functions) {
     const extraFunctions: Functions = {
-      ...(additionalFunctions || {}), ...{
-        goto: (stack: Stack, context: Context) => {
-          const str1 = stack.pop();
-          if (typeof str1 !== "string") {
-            throw new Error("goto: param 1 on stack is not of type string!");
-          }
-          this.currentState = str1;
-          this.parseState();
-          return null;
-        }
-      }
+      ...(additionalFunctions || {}), ...{}
     };
     this.markdownSource = markdownSource;
     this.X = this.parseMD(this.markdownSource);
+    fs.writeFileSync("full.json", JSON.stringify(this.X, null, 2));
+    fs.writeFileSync("flat.json", JSON.stringify(this.smartFlat(this.X), null, 2));
     this.questmarkOptions = this.getQuestmarkOptions(this.X);
-    this.currentState = (this.questmarkOptions.hasOwnProperty('initial-state') ? this.questmarkOptions['initial-state'] : "InitialState");
-    this.allHeaders = this.getHeaders(this.X)
-    this.clear = clear || false;
-    this.debugging = debugging || false;
-    this.vm = new VM((this.questmarkOptions.hasOwnProperty('initial-context') ? this.questmarkOptions['initial-context'] : {}), extraFunctions);
+    const initState = (this.questmarkOptions.hasOwnProperty('initial-state') ? this.questmarkOptions['initial-state'] : "InitialState");
+    const context = this.questmarkOptions.hasOwnProperty('initial-context') ? this.questmarkOptions['initial-context'] : {};
+    let code = ``;
+    Object.entries(context).forEach(pair => {
+      code += ` ${pair[1]} "${pair[0]}" setContext`;
+    });
+    code += ` "${initState}" goto`;
+
+
+    const headers = this.getHeaders(this.X);
+    const headerI = 5;
+
+    code += `\n#${headers[headerI]}\n`; // TODO: postfix newline? normalize header name?
+    const state_tokens: Token[] = this.getTokensInHeader(this.X, headers[headerI]);
+    fs.writeFileSync("st.json", JSON.stringify(state_tokens, null, 2));
+    let flatTokens = state_tokens;
+    let cont = true;
+    while (cont) {
+      flatTokens = _.flatten(flatTokens.map(f => {
+        if (f.children !== null) {
+          return f.children;
+        }
+        return f;
+      }));
+      cont = flatTokens.reduce((memo, val) => memo && (val.children !== null), true);
+    }
+    flatTokens = flatTokens.filter(f => f.type !== "paragraph_open" && f.type !== "paragraph_close" && f.type !== "bullet_list_open" && f.type !== "bullet_list_close");
+    flatTokens = flatTokens.reduce((memo, val) => {
+      if (memo.parsing === "list_item" && !val.type.startsWith("list_item")) {
+        (val as any).metaType = "option";
+        memo.items.push(val);
+      }
+      if (val.type === "list_item_open") {
+        memo.parsing = "list_item";
+      }
+      if (memo.parsing === null) {
+        memo.items.push(val);
+      }
+      if (val.type === "list_item_close") {
+        memo.parsing = null;
+      }
+      return memo;
+    }, { items: [], parsing: null }).items;
+    fs.writeFileSync("temp.json", JSON.stringify(flatTokens, null, 2));
+
+    state_tokens.forEach(token => {
+      if (token.type === "inline") {
+        code += ` ${token.content}`; // TODO: escape doublequotes?
+      } else if (token.type === "paragraph_open") {
+        code += ` "`
+      } else if (token.type === "paragraph_close") {
+        code += `" emit\n`
+      } else {
+        console.log(token);
+      }
+    });
+    const tos = _.flatten(this.getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')).filter(x => x.level === 1);
+    //console.log(tos);
+    console.log(code);
+    this.vm = new VM(({}), extraFunctions);
   }
 
   parseMD(text: string) {
     return markdownIt.parse(text, {});
+  }
+
+  smartFlat(tokens: Token[]) {
+    const retval: Token[] = [];
+    let lastBullet: Token = null;
+
+    tokens.forEach(t => {
+      if (lastBullet === null) {
+        retval.push(t);
+      }
+      if (t.type === "bullet_list_open") {
+        lastBullet = t;
+        lastBullet.children = lastBullet.children || [];
+      } else if (t.type === "bullet_list_close") {
+        lastBullet = null;
+      } else if (lastBullet !== null) {
+        lastBullet.children.push(t);
+      }
+    });
+    return retval;
   }
 
   getTokensInHeader(tokens: Token[], headerToSearch: string) {
@@ -234,53 +297,6 @@ export class QuestmarkEngine {
 
   execCode(data: string) {
     return this.vm.eval(data);
-  }
-
-  parseState() {
-    if (this.clear) {
-      process.stdout.write('\x1Bc\n');
-    }
-    if (this.previousErrors.length > 0) {
-      this.previousErrors.forEach(previousError => {
-        console.log(colors.red.bold("Warning: error occurred: " + previousError.toString()));
-      });
-    }
-    while (this.previousErrors.length > 0) {
-      this.previousErrors.pop();
-    }
-    const textInHeader = this.getRawTextInHeader(this.markdownSource, this.X, this.currentState);
-    const templateFunc = dot.template(textInHeader); // TODO: remove?
-    const state_markdown = templateFunc(this.vm.context);
-    const state_tokens = this.parseMD(state_markdown);
-    const paragraphsData = this.processTokens(_.filter(_.flatten(this.getBlocksBetween(state_tokens, 'paragraph_open', 'paragraph_close')), function (x) { return x.level === 1 }));
-    console.log(colors.bold.blue(_.reduce(paragraphsData, function (memo, val) {
-      memo = memo + '\n\n' + val.content;
-      return memo;
-    }, "")));
-    const options = this.getOptionsForTokens(state_tokens, this.allHeaders);
-    if (this.debugging) {
-      console.log(options);
-    }
-    if (options.length > 0) {
-      inquirer.prompt([{
-        type: "list",
-        name: "selection",
-        message: " ",
-        choices: options.map(o => o.content)
-      }]).then(answers => {
-        const selectedOption = options.find(x => x.content === answers.selection);
-        const codeTokens = selectedOption.tokens.filter(x => x.type === 'code_inline');
-        codeTokens.forEach((codeToken) => {
-          this.execCode(codeToken.content);
-        });
-        if (selectedOption.tostate !== undefined) {
-          this.currentState = selectedOption.tostate;
-          this.parseState();
-        }
-      });
-    } else {
-      console.log("No more options - terminating!".red);
-    }
   }
 
 }
