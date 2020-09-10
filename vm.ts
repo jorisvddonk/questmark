@@ -1,7 +1,7 @@
 import debug from "debug";
 import { Tokenizer, InstructionNode } from "./tokenizer";
 import visit from "unist-util-visit";
-import { QuestMarkVMState } from "./test_mdast";
+import { QuestMarkVMState } from "./parseMarkdown";
 
 export type instructiontype = "push-number-instruction" | "push-string-instruction" | "invoke-function-instruction";
 export type BaseInstruction<T extends instructiontype> = {
