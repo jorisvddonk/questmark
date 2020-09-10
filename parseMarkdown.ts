@@ -231,6 +231,9 @@ export function parseMarkdown(file_contents: string) {
         break;
       case "inlineCode":
       case "code":
+        if (node.lang === "comment") {
+          break;
+        }
         const tokens = tokenizer.tokenize(node.value as string);
         const { instructions, labelMap } = tokenizer.transform(tokens);
         qvmState.labelMap = Object.assign({}, qvmState.labelMap, labelMap);
