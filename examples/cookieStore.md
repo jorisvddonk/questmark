@@ -18,7 +18,7 @@ Hello, random person!
 You have `"cookies" getContext emit` cookies!
 
 * [Buy cookie](#buyCookie)
-* [Eat cookie](#NORMAL_HELLO_A) `"cookies" getContext 1 - "cookies" setContext "You eat a cookie" emit`
+* [Eat cookie](#NORMAL_HELLO_A) `1 "cookies" getContext - "cookies" setContext "You eat a cookie" emit`
 * Leave the store `"exit" goto`
 
 # NORMAL_HELLO_B
