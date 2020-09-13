@@ -19,8 +19,8 @@ import { Tokenizer, pushString, pushNumber, invokeFunction } from "./tokenizer";
 
 export type OptionNode = Node & {
   type: "option",
-  precondition: null | string,
-  effect: null | string,
+  preconditionChildren: null | Node[],
+  effectChildren: null | Node[],
   text: null | string,
   link: null | string,
 }
@@ -76,78 +76,87 @@ export function parseMarkdown(file_contents: string) {
     // create new state node
     const stateNode = u('state', { name, options: [] }, []);
 
-    // capture children
-    // children are all nodes until either the next heading, or end of tree,
-    //  but nodes of a type other than 'list' with ordered === false.
-    stateNode.children = children.filter(n => {
-      if (n.type !== 'list') {
-        return true;
+
+    let found = false;
+    let stateChildren = [];
+    let remainingChildren = [];
+    // phase 0: split children into stateChildren and remaining children.
+    children.forEach(child => {
+      if (child.type === 'list' && child.ordered === false) {
+        found = true;
+      }
+      if (found) {
+        remainingChildren.push(child);
       } else {
-        return n.ordered === true;
+        stateChildren.push(child);
       }
     });
+    stateNode.children = stateChildren;
 
-    // capture options
-    const listItemTest: TestFunction<Node> = (z: Node): z is Node => {
-      return z.type === "listItem"
-    };
-    const paragraphTest: TestFunction<Node> = (z: Node): z is Node => {
-      return z.type === "paragraph"
-    };
-    const linkOrText: TestFunction<Node> = (z: Node): z is Node => {
-      return z.type === "link" || z.type === 'text';
-    };
-
-    const listItemsAsParagraphs: Node[] = children.filter(n => {
-      if (n.type === 'list') {
-        return n.ordered === false;
-      } else {
-        return false;
+    // phase 1: replace list nodes with their children, then flatten the list
+    remainingChildren = remainingChildren.map(child => {
+      if (child.type === 'list' && child.ordered === false) {
+        return child.children;
       }
-    }).map(l => flatFilter(l, listItemTest)).map(l => flatFilter(l, paragraphTest)).flatMap(l => l.children) as Node[];
-    const options: Node[] = listItemsAsParagraphs.map((li: Parent) => {
-      // li's `link` / `text` children are the main links / options
+      return child;
+    }).flat(1);
+
+    // phase 2: reparent non-listItem nodes to the last-seen listItem.
+    let lastSeenListItem = null;
+    remainingChildren = remainingChildren.map(child => {
+      if (child.type === 'listItem') {
+        lastSeenListItem = child;
+        return child;
+      } else {
+        lastSeenListItem.children.push(child);
+      }
+    }).filter(x => x !== undefined);
+
+    // phase 3: build the options from the remainingChildren (now all listItems)
+    const options: Node[] = remainingChildren.map((li: Parent) => {
+      // li's `link` / `text` children are the main links / options, but only the first item is considered (the others are effect nodes)
       // li's `inlineCode` children are either precondition or effect code blocks
-      const optionNode: OptionNode = u("option", { precondition: null, effect: null, text: null, link: null });
+      const optionNode: OptionNode = u("option", { preconditionChildren: null, effectChildren: null, text: null, link: null });
       const preconditionBound = li.children.find(x => x.type === "text" || x.type === "link");
-      const effectBound = li.children.reduceRight((memo, child) => {
-        if (memo) {
-          return memo;
-        }
-        if (child.type !== "inlineCode") {
-          return child;
-        }
-      }, undefined);
       const preconditions = preconditionBound !== undefined ? li.children.slice(0, li.children.indexOf(preconditionBound)) : [];
-      const linkTexts = li.children.slice(li.children.indexOf(preconditionBound), li.children.indexOf(effectBound));
-      const effects = effectBound !== undefined ? li.children.slice(li.children.indexOf(effectBound) + 1) : [];
-      optionNode.precondition = preconditions.map(p => p.value).join(" ");
-      optionNode.effect = effects.map(p => p.value).join(" ");
+      let effectNodes = [];
       let text = [];
-      visit(li, 'text', n => {
-        if (n.value) {
-          text.push(n.value);
-        }
-      });
       let link = [];
-      visit(li, 'link', n => {
-        if (n.url) {
-          link.push(n.url);
+      visit(li, n => {
+        if (text.length > 0 && n.type !== "paragraph") {
+          if (n.type === "text" && n.value && (n.value as string).trim().length === 0) {
+            // skip this one; whitespace only node!
+          } else {
+            effectNodes.push(n);
+          }
+        }
+
+        if (n.type === "text") {
+          if (n.value && text.length === 0) {
+            text.push(n.value);
+          }
+        }
+        if (n.type === "link") {
+          if (n.url && link.length === 0) {
+            link.push(n.url);
+          }
         }
       });
+      optionNode.preconditionChildren = preconditions;
+      optionNode.effectChildren = effectNodes;
       optionNode.text = text.join(" ").trim();
       optionNode.link = link.join(" ");
-      if (optionNode.precondition.length === 0) {
-        optionNode.precondition = null;
-      }
-      if (optionNode.effect.length === 0) {
-        optionNode.effect = null;
-      }
       if (optionNode.link.length === 0) {
         optionNode.link = null;
       }
       if (optionNode.text.length === 0) {
         optionNode.text = null;
+      }
+      if (optionNode.preconditionChildren.length === 0) {
+        optionNode.preconditionChildren = null;
+      }
+      if (optionNode.effectChildren.length === 0) {
+        optionNode.effectChildren = null;
       }
       return optionNode;
     });
@@ -196,8 +205,15 @@ export function parseMarkdown(file_contents: string) {
         qvmState.labelMap[node.name as string] = qvmState.programList.length;
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
         (node.options as OptionNode[]).forEach(option => {
-          if (option.precondition !== null) {
-            tokenizer.transform(tokenizer.tokenize(option.precondition)).instructions.forEach(i => q(i));
+          if (option.preconditionChildren !== null) {
+            option.preconditionChildren.forEach(child => {
+              if (child.type === "inlineCode") {
+                tokenizer.transform(tokenizer.tokenize(child.value as string)).instructions.forEach(i => q(i));
+              } else {
+                throw new Error("preconditionChildren contain non-inlineCode elements. Aborting!");
+              }
+            })
+
             q(invokeFunction("jgz"));
             q(invokeFunction("{")); // precondition block start
             console.warn("Option contains a precondition. This is currently not supported!");
@@ -210,8 +226,15 @@ export function parseMarkdown(file_contents: string) {
             q(pushString(option.text))
           }
           q(invokeFunction("{")); // effect body start
-          if (option.effect !== null) {
-            tokenizer.transform(tokenizer.tokenize(option.effect)).instructions.forEach(i => q(i));
+          if (option.effectChildren !== null) {
+            option.effectChildren.forEach(child => {
+              if (child.type === "inlineCode") {
+                tokenizer.transform(tokenizer.tokenize(child.value as string)).instructions.forEach(i => q(i));
+              } else {
+                q(pushString(child.value as string));
+                q(invokeFunction("emit"));
+              }
+            })
           }
           if (option.link !== null) {
             q(pushString(option.link.substr(1)));
