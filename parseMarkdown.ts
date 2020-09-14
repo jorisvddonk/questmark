@@ -117,9 +117,8 @@ export function parseMarkdown(file_contents: string) {
       // li's `link` / `text` children are the main links / options, but only the first item is considered (the others are effect nodes)
       // li's `inlineCode` children are either precondition or effect code blocks
       const optionNode: OptionNode = u("option", { preconditionChildren: null, effectChildren: null, text: null, link: null });
-      const preconditionBound = li.children.find(x => x.type === "text" || x.type === "link");
-      const preconditions = preconditionBound !== undefined ? li.children.slice(0, li.children.indexOf(preconditionBound)) : [];
       let effectNodes = [];
+      let preconditionNodes = [];
       let text = [];
       let link = [];
       visit(li, n => {
@@ -132,7 +131,7 @@ export function parseMarkdown(file_contents: string) {
         }
 
         if (n.type === "text") {
-          if (n.value && text.length === 0) {
+          if (n.value && (n.value as string).trim().length > 0 && text.length === 0) {
             text.push(n.value);
           }
         }
@@ -141,8 +140,12 @@ export function parseMarkdown(file_contents: string) {
             link.push(n.url);
           }
         }
+
+        if (text.length === 0 && n.type === "inlineCode") {
+          preconditionNodes.push(n);
+        }
       });
-      optionNode.preconditionChildren = preconditions;
+      optionNode.preconditionChildren = preconditionNodes;
       optionNode.effectChildren = effectNodes;
       optionNode.text = text.join(" ").trim();
       optionNode.link = link.join(" ");
