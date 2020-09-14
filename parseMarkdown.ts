@@ -219,7 +219,6 @@ export function parseMarkdown(file_contents: string) {
 
             q(invokeFunction("jgz"));
             q(invokeFunction("{")); // precondition block start
-            console.warn("Option contains a precondition. This is currently not supported!");
           }
           if (option.text !== null) {
             if (option.text.includes("`")) {
