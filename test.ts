@@ -57,7 +57,45 @@ function buildVM() {
     "test": (stack: Stack, context: Context, vm: VM) => {
       console.log("TEST function invoked!");
       return null;
+    },
+    "_optionEnabled": (stack: Stack, context: Context, vm: VM) => {
+      const [str1] = getStackParams("_optionEnabled", ["string"], stack) as [string];
+      const optstr = `optionEnabled_${str1}`;
+      let retval = null;
+      if (vm.context[optstr] === undefined) {
+        vm.context[optstr] = 1;
+        retval = 1;
+      } else {
+        retval = vm.context[optstr];
     }
+      stack.push(retval);
+      return retval;
+    },
+    "_optionDisabled": (stack: Stack, context: Context, vm: VM) => {
+      const [str1] = getStackParams("_optionDisabled", ["string"], stack) as [string];
+      const optstr = `optionEnabled_${str1}`;
+      let retval = null;
+      if (vm.context[optstr] === undefined) {
+        vm.context[optstr] = 1;
+        retval = 0;
+      } else {
+        retval = vm.context[optstr] === 1 ? 0 : 1;
+      }
+      stack.push(retval);
+      return retval;
+    },
+    "_disableOption": (stack: Stack, context: Context, vm: VM) => {
+      const [str1] = getStackParams("_disableOption", ["string"], stack) as [string];
+      const optstr = `optionEnabled_${str1}`;
+      vm.context[optstr] = 0;
+      return null;
+    },
+    "_enableOption": (stack: Stack, context: Context, vm: VM) => {
+      const [str1] = getStackParams("_enableOption", ["string"], stack) as [string];
+      const optstr = `optionEnabled_${str1}`;
+      vm.context[optstr] = 1;
+      return null;
+    },
   });
 }
 
