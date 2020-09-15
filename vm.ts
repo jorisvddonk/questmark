@@ -123,8 +123,8 @@ export const std_functions: Functions = {
     return retval;
   },
   "eq": (stack: Stack, context: Context) => {
-    const [num1, num2] = getStackParams("eq", ["number", "number"], stack) as [number, number];
-    const retval = num1 === num2 ? 1 : 0;
+    const [val1, val2] = getStackParams("eq", ["string | number", "string | number"], stack) as [string | number, string | number];
+    const retval = val1 === val2 ? 1 : 0;
     stack.push(retval);
     return retval;
   },
