@@ -16,7 +16,7 @@
     "debug": "^4.1.1",
     "dot": "^1.1.2",
     "inquirer": "^6.2.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "markdown-it": "^8.4.2",
     "mdast": "^3.0.0",
     "mdast-util-from-markdown": "^0.1.1",
