@@ -47,7 +47,9 @@ Ideally, your dialogue tree Questmark files would be saved under revision contro
 # Current status of Questmark
 
 The spec is currently not written down properly, the supported featureset has not been decided on, and there is no formal test library.
-This Github repository, however, contains a proof of concept implemented in JavaScript!
+This Github repository, however, contains a proof of concept implemented in TypeScript!
+
+Though this document is a valid QuestMark document, you should really look in the "examples" folder for more interesting examples.
 
 # Welcome
 
