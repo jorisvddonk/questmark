@@ -1,9 +1,8 @@
-import { VM, Stack, getStackParams } from "./vm";
-import { Context } from "vm";
+import { VM, Stack, getStackParams } from "tzo";
+import { Context } from "tzo";
 import fs from "fs";
 import program from "commander";
 import { parseMarkdown } from "./parseMarkdown";
-import InputPrompt from "inquirer/lib/prompts/input";
 
 program
   .version('0.0.1')

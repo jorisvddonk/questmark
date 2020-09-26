@@ -1,21 +1,16 @@
-import mdast, { Parent, Literal } from "mdast";
-import fs from "fs";
+import { Parent } from "mdast";
 import fromMarkdown from "mdast-util-from-markdown";
-import { TestFunction } from "unist-util-is";
 import findAfter from "unist-util-find-after";
 import removePosition from "unist-util-remove-position";
 import findAllAfter from "unist-util-find-all-after";
-import findAllBefore from "unist-util-find-all-before";
 import findAllBetween from "unist-util-find-all-between";
-import map from "unist-util-map";
-import flatFilter from "unist-util-flat-filter";
 import { Node } from "unist";
 import visitParents from "unist-util-visit-parents";
 import visit, { Visitor } from "unist-util-visit";
 import u from "unist-builder";
 import 'array-flat-polyfill';
-import { Stack, Context, InstructionOperation, LabelMap, Functions, Instruction, PushNumberInstruction, instructiontype, PushStringInstruction, InvokeFunctionInstruction } from "./vm";
-import { Tokenizer, pushString, pushNumber, invokeFunction } from "./tokenizer";
+import { TzoVMState } from "tzo";
+import { Tokenizer, pushString, pushNumber, invokeFunction } from "tzo";
 
 export type OptionNode = Node & {
   type: "option",
@@ -25,17 +20,7 @@ export type OptionNode = Node & {
   link: null | string,
 }
 
-export type questmarkVMStateOptions = {
-  stack: Stack;
-  context: Context;
-  programList: Instruction[];
-  labelMap: LabelMap;
-  programCounter: number;
-  exit: boolean;
-  pause: boolean;
-}
-
-export type QuestMarkVMState = Node & questmarkVMStateOptions;
+export type QuestMarkVMState = Node & TzoVMState;
 
 export function parseMarkdown(file_contents: string) {
   const tree = fromMarkdown(file_contents);
@@ -58,13 +43,13 @@ export function parseMarkdown(file_contents: string) {
     const children = nextHeading !== null ? findAllBetween(tree, x, nextHeading) : findAllAfter(tree, x);
 
     if (name === "QUESTMARK-OPTIONS-HEADER") {
-      root.options = getQuestmarkOptions(x, children);
+      root.options = getQuestmarkOptions(children);
     } else {
-      root.children.push(createStateNode(x, name, children));
+      root.children.push(createStateNode(name, children));
     }
   });
 
-  function getQuestmarkOptions(x: Node, children: Node[]) {
+  function getQuestmarkOptions(children: Node[]) {
     let code = '';
     visit(u('bla', children), 'code', n => {
       code = `${code} ${n.value}`;
@@ -72,7 +57,7 @@ export function parseMarkdown(file_contents: string) {
     return JSON.parse(code.trim());
   }
 
-  function createStateNode(x: Node, name: string, children: Node[]) {
+  function createStateNode(name: string, children: Node[]) {
     // create new state node
     const stateNode = u('state', { name, options: [] }, []);
 
@@ -175,7 +160,7 @@ export function parseMarkdown(file_contents: string) {
     programCounter: 0,
     exit: false,
     pause: false
-  } as questmarkVMStateOptions, []);
+  } as TzoVMState, []);
 
   const q = (a) => {
     qvmState.programList.push(a);
@@ -227,6 +212,9 @@ export function parseMarkdown(file_contents: string) {
             }
             q(pushString(option.text))
           }
+          q(invokeFunction("ppc")); // push address of effect body to stack
+          q(pushNumber(4)); 
+          q(invokeFunction("+")); 
           q(invokeFunction("{")); // effect body start
           if (option.effectChildren !== null) {
             option.effectChildren.forEach(child => {
