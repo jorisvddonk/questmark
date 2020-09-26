@@ -7,7 +7,6 @@ import inquirer from "inquirer";
 program
   .version('0.0.1')
   .option('-c, --clear', 'Clear console on each state')
-  .option('-d, --debugging', 'Show debug info on console')
   .option('--input <path>', "Load source .md or .json file", "examples/cookieStore.md")
   .option('--output <path>', "Emit VMState .json file", "out.json")
   .parse(process.argv);
