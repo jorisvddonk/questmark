@@ -238,7 +238,8 @@ export function parseMarkdown(file_contents: string) {
             q(invokeFunction("}")); // precondition block end
           }
         });
-        q(invokeFunction("getResponse"));
+        q(invokeFunction("getResponse")); // getResponse is expected to pause the VM and push the relevant programlist index onto the stack
+        q(invokeFunction("goto")); // goto whatever was pushed onto the stack by getResponse
         return "skip";
         // children have been parsed earlier
         break;

@@ -26,7 +26,7 @@ export class QuestVM extends VM {
           message: " ",
           choices: this.responses.map(resp => { return { name: resp.response, value: resp.pc }; })
         }]).then(answers => {
-          vm.programCounter = (answers.selection);
+          vm.stack.push(answers.selection);
           vm.run();
         });
         while (this.responses.length > 0) { // clear responses, so that current responses won't appear again next time
