@@ -10,6 +10,7 @@ program
   .option('-c, --clear', 'Clear console on each state')
   .option('-d, --debugging', 'Show debug info on console')
   .option('--input <path>', "Load source .md or .json file", "examples/cookieStore.md")
+  .option('--output <path>', "Emit VMState .json file", "out.json")
   .parse(process.argv);
 
 const input_file = fs.readFileSync(program.input).toString();
@@ -19,7 +20,11 @@ if (program.input.endsWith(".json")) {
   vm.run();
 } else if (program.input.endsWith(".md")) {
   const vm = buildVM();
-  vm.loadVMState(parseMarkdown(input_file).qvmState);
+  const vmState = parseMarkdown(input_file).qvmState;
+  if (program.out) {
+    fs.writeFileSync(program.out, JSON.stringify(vmState, null, 2));
+  }
+  vm.loadVMState(vmState);
   vm.run();
 }
 
