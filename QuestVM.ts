@@ -34,12 +34,8 @@ export class QuestVM extends VM {
         }
         return null;
       },
-      "test": (stack: Stack, context: Context, vm: VM) => {
-        console.log("TEST function invoked!");
-        return null;
-      },
-      "_optionEnabled": (stack: Stack, context: Context, vm: VM) => {
-        const [str1] = getStackParams("_optionEnabled", ["string"], stack) as [string];
+      "optionEnabled": (stack: Stack, context: Context, vm: VM) => {
+        const [str1] = getStackParams("optionEnabled", ["string"], stack) as [string];
         const optstr = `optionEnabled_${str1}`;
         let retval = null;
         if (vm.context[optstr] === undefined) {
@@ -51,8 +47,8 @@ export class QuestVM extends VM {
         stack.push(retval);
         return retval;
       },
-      "_optionDisabled": (stack: Stack, context: Context, vm: VM) => {
-        const [str1] = getStackParams("_optionDisabled", ["string"], stack) as [string];
+      "optionDisabled": (stack: Stack, context: Context, vm: VM) => {
+        const [str1] = getStackParams("optionDisabled", ["string"], stack) as [string];
         const optstr = `optionEnabled_${str1}`;
         let retval = null;
         if (vm.context[optstr] === undefined) {
@@ -64,14 +60,14 @@ export class QuestVM extends VM {
         stack.push(retval);
         return retval;
       },
-      "_disableOption": (stack: Stack, context: Context, vm: VM) => {
-        const [str1] = getStackParams("_disableOption", ["string"], stack) as [string];
+      "disableOption": (stack: Stack, context: Context, vm: VM) => {
+        const [str1] = getStackParams("disableOption", ["string"], stack) as [string];
         const optstr = `optionEnabled_${str1}`;
         vm.context[optstr] = 0;
         return null;
       },
-      "_enableOption": (stack: Stack, context: Context, vm: VM) => {
-        const [str1] = getStackParams("_enableOption", ["string"], stack) as [string];
+      "enableOption": (stack: Stack, context: Context, vm: VM) => {
+        const [str1] = getStackParams("enableOption", ["string"], stack) as [string];
         const optstr = `optionEnabled_${str1}`;
         vm.context[optstr] = 1;
         return null;
