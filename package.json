@@ -10,6 +10,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node cli.ts"
   },
+  "bin": {
+    "questmark": "dist/cli.js"
+  },
   "author": "Joris van de Donk",
   "license": "MIT",
   "dependencies": {
