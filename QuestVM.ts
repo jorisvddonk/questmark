@@ -1,10 +1,15 @@
 import { VM, Stack, getStackParams } from "tzo";
 import { Context } from "tzo";
 
+export interface Choice {
+  title: string,
+  id: number
+}
+
 export class QuestVM extends VM {
   responses = [];
 
-  constructor() {
+  constructor(getResponseFunction: (choices: Choice[]) => Promise<number>) {
     super({}, {
       "emit": (stack: Stack) => {
         const [str1] = getStackParams("emit", ["string | number"], stack) as [string | number];
@@ -17,22 +22,20 @@ export class QuestVM extends VM {
         return null;
       },
       "getResponse": (stack: Stack, context: Context, vm: VM) => {
-        const inquirer = require('inquirer');
         vm.suspend();
-        process.stdout.write("\n"); // add newline to make inquirer not overwrie any previously emitted text
-        inquirer.prompt([{
-          type: "list",
-          name: "selection",
-          message: " ",
-          choices: this.responses.map(resp => { return { name: resp.response, value: resp.pc }; })
-        }]).then(answers => {
-          vm.stack.push(answers.selection);
-          vm.run();
-        });
+        const choices = this.responses.map((resp, index) => { return { title: resp.response, programCounter: resp.pc, id: index }; })
+        const sChoices: Choice[] = choices.map(c => ({ title: c.title, id: c.id }));
         while (this.responses.length > 0) { // clear responses, so that current responses won't appear again next time
           this.responses.pop();
         }
-        return null;
+        getResponseFunction(sChoices).then(choiceID => {
+          const choice = choices.find(c => c.id === choiceID);
+          if (choice === undefined) {
+            throw new Error(`Unknown choice ID: ${choiceID}!`);
+          }
+          vm.stack.push(choice.programCounter);
+          vm.run();
+        });
       },
       "optionEnabled": (stack: Stack, context: Context, vm: VM) => {
         const [str1] = getStackParams("optionEnabled", ["string"], stack) as [string];

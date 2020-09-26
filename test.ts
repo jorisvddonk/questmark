@@ -1,7 +1,8 @@
 import fs from "fs";
 import program from "commander";
 import { parseMarkdown } from "./parseMarkdown";
-import { QuestVM } from "./QuestVM";
+import { Choice, QuestVM } from "./QuestVM";
+import inquirer from "inquirer";
 
 program
   .version('0.0.1')
@@ -12,7 +13,17 @@ program
   .parse(process.argv);
 
 const input_file = fs.readFileSync(program.input).toString();
-const vm = new QuestVM();
+const vm = new QuestVM((choices: Choice[]) => {
+  process.stdout.write("\n"); // add newline to make inquirer not overwrie any previously emitted text
+  return inquirer.prompt([{
+    type: "list",
+    name: "selectedChoice",
+    message: " ",
+    choices: choices.map(c => ({ name: c.title, value: c.id }))
+  }]).then(answers => {
+    return answers.selectedChoice;
+  });
+});
 if (program.input.endsWith(".json")) {
   vm.loadVMState(JSON.parse(input_file as any));
   vm.run();
