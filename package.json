@@ -1,6 +1,6 @@
 {
   "name": "questmark",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
     "start": "ts-node cli.ts"
   },
   "bin": {
-    "questmark": "dist/cli.js"
+    "questmark": "./bin/questmark"
   },
   "author": "Joris van de Donk",
   "license": "MIT",
