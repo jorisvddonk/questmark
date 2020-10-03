@@ -1,3 +1,4 @@
+import { EventEmitter } from "events";
 import { VM, Stack, getStackParams, Functions } from "tzo";
 import { Context } from "tzo";
 
@@ -8,18 +9,22 @@ export interface Choice {
 
 export class QuestVM extends VM {
   responses = [];
+  eventBus = new EventEmitter();
 
   constructor(emitFunction: (body: string | number) => void, getResponseFunction: (choices: Choice[]) => Promise<number>, additionalFunctions?: Functions) {
     super({}, {
       ...(additionalFunctions || {}), ...{
         "emit": (stack: Stack) => {
           const [str1] = getStackParams("emit", ["string | number"], stack) as [string | number];
+          this.eventBus.emit('emit', str1);
           emitFunction(str1);
           return null;
         },
         "response": (stack: Stack, context: Context, vm: VM) => {
           const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
-          this.responses.push({ response: str1, pc: num1 });
+          const response = { response: str1, pc: num1 };
+          this.eventBus.emit('response', response);
+          this.responses.push(response);
           return null;
         },
         "getResponse": (stack: Stack, context: Context, vm: VM) => {
@@ -36,6 +41,9 @@ export class QuestVM extends VM {
             }
             vm.stack.push(choice.programCounter);
             vm.run();
+          }).catch(e => {
+            this.eventBus.emit('error', e);
+            this.quit();
           });
         },
         "optionEnabled": (stack: Stack, context: Context, vm: VM) => {
