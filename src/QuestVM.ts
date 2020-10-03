@@ -18,14 +18,12 @@ export class QuestVM extends VM {
           const [str1] = getStackParams("emit", ["string | number"], stack) as [string | number];
           this.eventBus.emit('emit', str1);
           emitFunction(str1);
-          return null;
         },
         "response": (stack: Stack, context: Context, vm: VM) => {
           const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
           const response = { response: str1, pc: num1 };
           this.eventBus.emit('response', response);
           this.responses.push(response);
-          return null;
         },
         "getResponse": (stack: Stack, context: Context, vm: VM) => {
           vm.suspend();
@@ -57,7 +55,6 @@ export class QuestVM extends VM {
             retval = vm.context[optstr];
           }
           stack.push(retval);
-          return retval;
         },
         "optionDisabled": (stack: Stack, context: Context, vm: VM) => {
           const [str1] = getStackParams("optionDisabled", ["string"], stack) as [string];
@@ -70,19 +67,16 @@ export class QuestVM extends VM {
             retval = vm.context[optstr] === 1 ? 0 : 1;
           }
           stack.push(retval);
-          return retval;
         },
         "disableOption": (stack: Stack, context: Context, vm: VM) => {
           const [str1] = getStackParams("disableOption", ["string"], stack) as [string];
           const optstr = `optionEnabled_${str1}`;
           vm.context[optstr] = 0;
-          return null;
         },
         "enableOption": (stack: Stack, context: Context, vm: VM) => {
           const [str1] = getStackParams("enableOption", ["string"], stack) as [string];
           const optstr = `optionEnabled_${str1}`;
           vm.context[optstr] = 1;
-          return null;
         },
       }
     });
