@@ -216,7 +216,7 @@ export function parseMarkdown(file_contents: string) {
           if (option.preconditionChildren !== null) {
             option.preconditionChildren.forEach(child => {
               if (child.type === "inlineCode") {
-                tokenizer.transform(tokenizer.tokenize(child.value as string)).instructions.forEach(i => q(i));
+                tokenizer.transform(tokenizer.tokenize(child.value as string)).forEach(i => q(i));
               } else {
                 throw new Error("preconditionChildren contain non-inlineCode elements. Aborting!");
               }
@@ -239,7 +239,7 @@ export function parseMarkdown(file_contents: string) {
           if (option.effectChildren !== null) {
             option.effectChildren.forEach(child => {
               if (child.type === "inlineCode") {
-                tokenizer.transform(tokenizer.tokenize(child.value as string)).instructions.forEach(i => q(i));
+                tokenizer.transform(tokenizer.tokenize(child.value as string)).forEach(i => q(i));
               } else {
                 q(pushString(child.value as string));
                 q(invokeFunction("emit"));
@@ -274,8 +274,7 @@ export function parseMarkdown(file_contents: string) {
           break;
         }
         const tokens = tokenizer.tokenize(node.value as string);
-        const { instructions, labelMap } = tokenizer.transform(tokens);
-        qvmState.labelMap = Object.assign({}, qvmState.labelMap, labelMap);
+        const instructions = tokenizer.transform(tokens);
         instructions.forEach(i => q(i));
         break;
       case "text":
