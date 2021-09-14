@@ -258,7 +258,7 @@ export function parseMarkdown(file_contents: string) {
           }
           q(invokeFunction("}")); // effect body end
           q(invokeFunction("response"));
-          if (option.precondition !== null) {
+          if (option.preconditionChildren !== null) {
             // when there was a precondition, ensure we close the precondition block
             q(invokeFunction("}")); // precondition block end
           }
