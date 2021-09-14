@@ -76,6 +76,12 @@ and if you select it, this text will be displayed to the player!
 You just incremented myvar to `"myvar" getContext emit`!
 
 * [Invoke test function!](#Test) `test`
+* `@once` You can only ever select this message once, due to the @once directive that's applied here
+
+Directives are special tokens that start with an @ sign that you place between backticks before an option's text body.
+Directives are QuestMark constructs (NOT (!) Tzo constructs) that perform high-level, commonly needed functionality that can otherwise also be implemented via manual Tzo bytecode, but can be cumbersome and make things more difficult to read.
+The @once directive ensures that an option is only ever selectable once and then never again within the same conversation VM execution.
+
 * Quit. This will quit the dialogue as it explicitly calls the exit effect `exit`
 
 # Start
