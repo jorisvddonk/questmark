@@ -278,6 +278,13 @@ export function parseMarkdown(file_contents: string) {
             option.effectChildren.forEach(child => {
               if (child.type === "inlineCode") {
                 tokenizer.transform(tokenizer.tokenize(child.value as string)).forEach(i => q(i));
+              } else if (child.type === "code") {
+                if (child.lang === "comment") {
+                  return;
+                }
+                const tokens = tokenizer.tokenize(child.value as string);
+                const instructions = tokenizer.transform(tokens);
+                instructions.forEach(i => q(i));
               } else {
                 q(pushString(child.value as string));
                 q(invokeFunction("emit"));
