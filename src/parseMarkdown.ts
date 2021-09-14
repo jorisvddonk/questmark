@@ -12,8 +12,11 @@ import 'array-flat-polyfill';
 import { TzoVMState } from "tzo";
 import { Tokenizer, pushString, pushNumber, invokeFunction } from "tzo";
 
+export type Directive = string;
+
 export type OptionNode = Node & {
   type: "option",
+  directives: null | Directive[],
   preconditionChildren: null | Node[],
   effectChildren: null | Node[],
   text: null | string,
@@ -31,6 +34,7 @@ export function parseMarkdown(file_contents: string) {
   const tree = fromMarkdown(file_contents);
   const tokenizer = new Tokenizer();
   const root = u('questmarkDocument', { options: {} }, []);
+  let last_once_directive_nr = 0;
   let noLinkBehaviour = NoLinkBehaviour.LOOPBACK_TO_OPTIONS;
   visitParents(tree, 'heading', (x, ancestors) => {
     if (ancestors.length > 1) {
@@ -107,11 +111,12 @@ export function parseMarkdown(file_contents: string) {
     const options: Node[] = remainingChildren.map((li: Parent) => {
       // li's `link` / `text` children are the main links / options, but only the first item is considered (the others are effect nodes)
       // li's `inlineCode` children are either precondition or effect code blocks
-      const optionNode: OptionNode = u("option", { preconditionChildren: null, effectChildren: null, text: null, link: null });
+      const optionNode: OptionNode = u("option", { preconditionChildren: null, effectChildren: null, text: null, link: null, directives: null });
       let effectNodes = [];
       let preconditionNodes = [];
       let text = [];
       let link = [];
+      let directives = [];
       visit(li, n => {
         if (text.length > 0 && n.type !== "paragraph") {
           if (n.type === "text" && n.value && (n.value as string).trim().length === 0) {
@@ -133,11 +138,18 @@ export function parseMarkdown(file_contents: string) {
         }
 
         if (text.length === 0 && n.type === "inlineCode") {
-          preconditionNodes.push(n);
+          if ((n.value as string).startsWith("@")) {
+            // this contains directives!
+            (n.value as string).split(/\s+/).forEach(directive => directives.push(directive));
+          } else {
+            // this contains precondition nodes..
+            preconditionNodes.push(n);
+          }
         }
       });
       optionNode.preconditionChildren = preconditionNodes;
       optionNode.effectChildren = effectNodes;
+      optionNode.directives = directives;
       optionNode.text = text.join(" ").trim();
       optionNode.link = link.join(" ");
       if (optionNode.link.length === 0) {
@@ -145,6 +157,9 @@ export function parseMarkdown(file_contents: string) {
       }
       if (optionNode.text.length === 0) {
         optionNode.text = null;
+      }
+      if (optionNode.directives.length === 0) {
+        optionNode.directives = null;
       }
       if (optionNode.preconditionChildren.length === 0) {
         optionNode.preconditionChildren = null;
@@ -213,7 +228,23 @@ export function parseMarkdown(file_contents: string) {
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
         qvmState.labelMap[nodeOptionsLabel] = qvmState.programList.length; // add a label immediately after the node's options to be able to shortcut jump to in certain cases
         (node.options as OptionNode[]).forEach(option => {
+          let has_precondition = false;
+          let has_once_directive = false;
+          let once_directive_name = null;
+
+          if (option.directives !== null && option.directives.includes('@once')) {
+            has_once_directive = true;
+            once_directive_name = `__once__${last_once_directive_nr}`;
+            last_once_directive_nr += 1;
+          }
+          if (has_once_directive) {
+            q(pushString(once_directive_name));
+            q(invokeFunction("hasContext"));
+            q(invokeFunction("jz"));
+            q(invokeFunction("{")); // once directive block start
+          }
           if (option.preconditionChildren !== null) {
+            has_precondition = true;
             option.preconditionChildren.forEach(child => {
               if (child.type === "inlineCode") {
                 tokenizer.transform(tokenizer.tokenize(child.value as string)).forEach(i => q(i));
@@ -221,7 +252,8 @@ export function parseMarkdown(file_contents: string) {
                 throw new Error("preconditionChildren contain non-inlineCode elements. Aborting!");
               }
             })
-
+          }
+          if (has_precondition) {
             q(invokeFunction("jgz"));
             q(invokeFunction("{")); // precondition block start
           }
@@ -236,6 +268,12 @@ export function parseMarkdown(file_contents: string) {
           q(pushNumber(4));
           q(invokeFunction("+"));
           q(invokeFunction("{")); // effect body start
+          if (has_once_directive) {
+            // set the once directive context variable immediatley
+            q(pushNumber(1))
+            q(pushString(once_directive_name));
+            q(invokeFunction("setContext"));
+          }
           if (option.effectChildren !== null) {
             option.effectChildren.forEach(child => {
               if (child.type === "inlineCode") {
@@ -258,7 +296,11 @@ export function parseMarkdown(file_contents: string) {
           }
           q(invokeFunction("}")); // effect body end
           q(invokeFunction("response"));
-          if (option.preconditionChildren !== null) {
+          if (has_once_directive) {
+            // when there was a once directive, ensure we close its block
+            q(invokeFunction("}")); // once directive block end
+          }
+          if (has_precondition) {
             // when there was a precondition, ensure we close the precondition block
             q(invokeFunction("}")); // precondition block end
           }
