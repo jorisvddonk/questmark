@@ -3,7 +3,10 @@
     {
       "questmark-spec": "1.0",
       "initial-state": "main",
-      "initial-context": {}
+      "initial-context": {},
+      "options": {
+        "no_link_behaviour": "exit"
+      }
     }
 
 # main

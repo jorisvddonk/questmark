@@ -5,6 +5,9 @@
       "initial-state": "main",
       "initial-context": {
         "cookies": 1
+      },
+      "options": {
+        "no_link_behaviour": "exit"
       }
     }
 

@@ -22,10 +22,16 @@ export type OptionNode = Node & {
 
 export type QuestMarkVMState = Node & TzoVMState;
 
+export enum NoLinkBehaviour {
+  EXIT = 0, // Exit the quest if no link is found for an option. NOT RECOMMENDED - Prefer using explicit exits instead by calling the `exit` instruction!
+  LOOPBACK_TO_OPTIONS = 1 // DEFAULT: Loopback to the options section if no link is found for an option and an option does not explicitly call an `exit` or `goto` effect.
+}
+
 export function parseMarkdown(file_contents: string) {
   const tree = fromMarkdown(file_contents);
   const tokenizer = new Tokenizer();
   const root = u('questmarkDocument', { options: {} }, []);
+  let noLinkBehaviour = NoLinkBehaviour.LOOPBACK_TO_OPTIONS;
   visitParents(tree, 'heading', (x, ancestors) => {
     if (ancestors.length > 1) {
       return;
@@ -187,11 +193,25 @@ export function parseMarkdown(file_contents: string) {
             q(pushString(node.options["initial-state"]));
             q(invokeFunction("goto"));
           }
+          if (node.options["options"]) {
+            if (node.options["options"]["no_link_behaviour"]) {
+              if (node.options["options"]["no_link_behaviour"] === "exit") {
+                noLinkBehaviour = NoLinkBehaviour.EXIT
+              } else if (node.options["options"]["no_link_behaviour"] === "loopback_to_options") {
+                noLinkBehaviour = NoLinkBehaviour.LOOPBACK_TO_OPTIONS
+              } else {
+                throw new Error(`Unknown 'options.no_link_behaviour': ${node.options["options"]["no_link_behaviour"]}`);
+              }
+            }
+          }
         }
         break;
       case "state":
-        qvmState.labelMap[node.name as string] = qvmState.programList.length;
+        const nodeLabel = node.name as string;
+        const nodeOptionsLabel = node.name + "__options" as string;
+        qvmState.labelMap[nodeLabel] = qvmState.programList.length;
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
+        qvmState.labelMap[nodeOptionsLabel] = qvmState.programList.length; // add a label immediately after the node's options to be able to shortcut jump to in certain cases
         (node.options as OptionNode[]).forEach(option => {
           if (option.preconditionChildren !== null) {
             option.preconditionChildren.forEach(child => {
@@ -213,8 +233,8 @@ export function parseMarkdown(file_contents: string) {
             q(pushString(option.text))
           }
           q(invokeFunction("ppc")); // push address of effect body to stack
-          q(pushNumber(4)); 
-          q(invokeFunction("+")); 
+          q(pushNumber(4));
+          q(invokeFunction("+"));
           q(invokeFunction("{")); // effect body start
           if (option.effectChildren !== null) {
             option.effectChildren.forEach(child => {
@@ -230,7 +250,12 @@ export function parseMarkdown(file_contents: string) {
             q(pushString(option.link.substr(1)));
             q(invokeFunction("goto"));
           }
-          q(invokeFunction("exit")); // ensure that options with no effect or link cause the VM to exit
+          if (noLinkBehaviour === NoLinkBehaviour.LOOPBACK_TO_OPTIONS) {
+            q(pushString(nodeOptionsLabel)); // ensure that options with no link or "goto" effect loop back to the options
+            q(invokeFunction("goto"));
+          } else if (noLinkBehaviour === NoLinkBehaviour.EXIT) {
+            q(invokeFunction("exit")); // ensure that options with no effect or link cause the VM to exit
+          }
           q(invokeFunction("}")); // effect body end
           q(invokeFunction("response"));
           if (option.precondition !== null) {

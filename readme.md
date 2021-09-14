@@ -65,10 +65,18 @@ Questmark also supports context variables that can be modified through dialogue 
 
 Below are some dialogue options you'll be able to invoke. In games, these correspond with the things your character can say to the NPC you're talking with.
 
+* This is a very simple option
+
+and if you select it, this text will be displayed to the player!
+
+* [Here is another option that emits the welcome text again when you select it, since it links back to the Welcome section.](#Welcome)
 * [Navigate to start section!](#Start)
-* [Increment myvar!](#Welcome) `"myvar" getContext 1 + "myvar" setContext`
+* Increment myvar! `"myvar" getContext 1 + "myvar" setContext`
+
+You just incremented myvar to `"myvar" getContext emit`!
+
 * [Invoke test function!](#Test) `test`
-* Quit. This will quit the dialogue in a questmark interpreter, as it is a dialogue option with no corresponding state.
+* Quit. This will quit the dialogue as it explicitly calls the exit effect `exit`
 
 # Start
 
