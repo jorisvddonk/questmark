@@ -24,9 +24,7 @@ const vm = new QuestVM(body => process.stdout.write(`${body}`), (choices: Choice
   }]).then(answers => {
     return answers.selectedChoice;
   });
-}, {test: () => {
-  console.log("Test function called!");
-}});
+}, {});
 
 let vmState: TzoVMState = undefined;
 
