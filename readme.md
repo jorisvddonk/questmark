@@ -1,18 +1,8 @@
-# QUESTMARK-OPTIONS-HEADER
+# introduction
 
-    {
-      "questmark-spec": "1.0",
-      "initial-state": "Welcome",
-      "initial-context": {
-        "myvar": 1
-      }
-    }
+Questmark is a [hypertext fiction](https://en.wikipedia.org/wiki/Hypertext_fiction) and [conversation tree](https://en.wikipedia.org/wiki/Dialogue_tree) language, compiler, interpreter, and TypeScript library. The Questmark language is designed to be easy to understand, and designed to support BOTH conversation trees (like in games such as Star Control 2) and quests / hypertext fiction / text adventures / visual novels (like in games such as Space Rangers 2). It's based heavily on Markdown, and compiles to [Tzo](https://github.com/jorisvddonk/tzo) bytecode.
 
-# Huh? What's that JSON at the start of this file?
-
-..you can safely ignore that JSON blob, for now.. :) Read on please!
-
-# The problem...
+# The problem that Questmark tries to solve
 
 Many modern games feature complex dialog trees or dialog graphs, which allow a player to interact with NPCs in the game world through dialogue that is predefined by the game's creators. Modern games implementing such systems are Skyrim, The Witcher, Deus Ex: Mankind Divided, Mass Effect: Andromeda... The list really [goes on and on](https://www.giantbomb.com/dialogue-trees/3015-77/)...
 
@@ -36,7 +26,7 @@ Every Markdown document with properly structured headers and in-document links i
 
 Questmark aims to make the following workflow viable:
 
-1. Authors write dialogue trees in Markdown, which can be demoed interactively, either by interpreting Markdown and compiling it as HTML, by interpreting Questmark in a simple Questmark runner, or by interpreting Questmark inside of a modern game engine.
+1. Authors write dialogue trees in Markdown, which can be demoed interactively, either by interpreting Markdown and compiling it as HTML, by interpreting Questmark in a simple Questmark runner, or by interpreting Questmark inside of a modern game engine. Note that the Markdown->HTML approach only works for simple documents without scripting.
 2. Authors, project managers, and other reviewers can add comments to provide feedback or clarification on dialogue without affecting interpreted Questmark output. These comments will *not* be visible anywhere when the dialogue tree definition is interpreted as Questmark.
 3. Gameplay programmers can add interactivity where needed.
 4. Authors can modify dialogue prose easily without affecting dialogue interactivity, if needed.
@@ -46,77 +36,35 @@ Ideally, your dialogue tree Questmark files would be saved under revision contro
 
 # Current status of Questmark
 
-The spec is currently not written down properly, the supported featureset has not been decided on, and there is no formal test library.
-This Github repository, however, contains a proof of concept implemented in TypeScript!
+The spec is currently not written down properly, the supported featureset has not been decided on, and there is no formal test library (though [Tzo](https://github.com/jorisvddonk/tzo) *does* have a [testsuite](https://github.com/jorisvddonk/tzo/tree/master/src/tests)). This Github repository, however, contains a proof of concept implemented in TypeScript!
 
-Though this document is a valid QuestMark document, you should really look in the "examples" folder for more interesting examples.
+You should look in the [examples](https://github.com/jorisvddonk/questmark/blob/master/examples) folder for examples. Particularly, [self-describing.md](https://github.com/jorisvddonk/questmark/blob/master/examples/self-describing.md) is a text adventure written in Questmark that explains how Questmark works to you!
 
-# Welcome
+There are a few things that are still a bit "up in the air" and need to be thought about or implemented properly:
 
-Hiya!
-Welcome to the first ever Questmark quest!
-That's right, this document is actually a totally valid Questmark quest, that can be interpreted by the example proof-of-concept reference questmark interpreter!
+* How should whitespace be treated?
+* How should inline HTML be treated?
+* How can the Questmark compiler be modified to add custom directives and macros?
+* How can a Questmark document be translated to another language, whilst keeping the scripting logic intact and easy to modify?
 
-If you're interpreting this file (readme.md) via a Questmark interpreter, and then compare it with the actual file's contents, you'll notice that there was LOTS OF TEXT that you're never going to see when interpreting via the Questmark interpreter. That's because the first section of a Questmark file contains what is called the Questmark options header. This options header defines the default entrypoint of a dialogue graph, and in this particular document's case that's the Welcome section that you're reading right now.
+# Questmark cli usage
 
-The questmark options header is designed to be flexible and extendable, and will probably be used to specify which language version is targeted, which language features should be enabled/supported, which language extensions should be loaded (if any), which runtime scripts are required to provide functionality, and maybe even which assets should be preloaded before loading the dialogue tree (think interactive fiction that has embedded images).
+Questmark contains a simple CLI to compile and optionally interpret Questmark documents that don't contain any foreign opcodes that aren't implemented by the standard reference inplementation.
 
-Questmark also supports context variables that can be modified through dialogue options! For instance, context variable 'myvar' is `"myvar" getContext emit`. Ain't that splendid?
+## Compiling a Questmark document to Tzo bytecode
 
-Below are some dialogue options you'll be able to invoke. In games, these correspond with the things your character can say to the NPC you're talking with.
+```bash
+npx questmark --no-run --input path_to_questmark_document.md --output path_to_output.json
+```
 
-* This is a very simple option
+## Interpreting a Questmark document
 
-and if you select it, this text will be displayed to the player!
+```bash
+npx questmark --input path_to_questmark_document.md
+```
 
-* [Here is another option that emits the welcome text again when you select it, since it links back to the Welcome section.](#Welcome)
-* [Navigate to start section!](#Start)
-* Increment myvar! `"myvar" getContext 1 + "myvar" setContext`
+# Questmark library usage
 
-You just incremented myvar to `"myvar" getContext emit`!
+TODO: document this.
 
-* [Invoke test function!](#Test) `test`
-* `@once` You can only ever select this message once, due to the @once directive that's applied here
-
-Directives are special tokens that start with an @ sign that you place between backticks before an option's text body.
-Directives are QuestMark constructs (NOT (!) Tzo constructs) that perform high-level, commonly needed functionality that can otherwise also be implemented via manual Tzo bytecode, but can be cumbersome and make things more difficult to read.
-The @once directive ensures that an option is only ever selectable once and then never again within the same conversation VM execution.
-
-* Quit. This will quit the dialogue as it explicitly calls the exit effect `exit`
-
-# Start
-
-Hi! You are now at the start section. Ain't it fun?
-
-Here is some fancy lorem ipsum text to make this section a little bigger. This will allow you to see how Questmark makes use of existing Markdown functionality to transport you to different states of a dialogue tree!
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc nibh elit, lacinia eu tortor at, scelerisque vulputate leo. Cras sollicitudin tincidunt lorem ac consectetur. Sed et aliquam lacus. Vestibulum condimentum porttitor orci in interdum. Donec iaculis vitae diam id elementum. Donec sed orci augue. Curabitur scelerisque felis nec justo molestie, id placerat augue bibendum. Integer fermentum ut quam at convallis. Quisque a augue sed libero finibus viverra a at nulla.
-
-In aliquet placerat justo, id varius elit vulputate ut. Quisque finibus tellus sed mi imperdiet, et accumsan nunc dapibus. Nam massa tortor, luctus non ante in, volutpat commodo ante. Vestibulum quis nisl eu enim suscipit sagittis. Proin lacinia erat ut cursus elementum. Curabitur rhoncus dictum lectus, auctor tempus neque congue sit amet. Nulla sagittis euismod lorem, et fringilla odio consequat sit amet. Curabitur imperdiet, mi lobortis luctus varius, mauris urna pharetra magna, tincidunt rutrum massa risus sed diam. In hac habitasse platea dictumst. Etiam at sollicitudin ligula. Duis in vestibulum ante. In a lectus tortor. Donec porttitor quam id fringilla egestas. Aenean pretium nulla vitae purus vehicula, ut mattis purus sagittis. Etiam eget vestibulum neque.
-
-Sed maximus, sem sed venenatis faucibus, augue mauris rutrum eros, non ullamcorper risus lorem in elit. Donec lorem augue, ornare quis sapien nec, accumsan dictum quam. Quisque nec tristique quam. Nullam vel tortor at massa congue condimentum. Nunc id ultricies tortor. Quisque vel purus neque. Nullam urna tortor, hendrerit quis quam tincidunt, vehicula iaculis felis. Suspendisse potenti. Nulla pharetra, sapien a fringilla ornare, ligula justo bibendum augue, quis luctus elit diam sed libero. Quisque non augue sit amet sem eleifend ultrices. Quisque blandit tempus erat. In varius magna sit amet dapibus commodo. Nunc sit amet pulvinar arcu. Suspendisse elementum massa vel ligula dapibus dapibus.
-
-Proin vel euismod justo. Vivamus placerat urna ac urna dapibus viverra. Morbi dictum lectus vel vestibulum mollis. Cras dictum semper venenatis. Nullam gravida id augue id tempor. Morbi ante leo, consectetur sit amet sollicitudin eu, sagittis eu elit. Proin quis leo tellus. In maximus tempor faucibus. Pellentesque eu facilisis nulla. Morbi at mollis ligula. Sed non quam ut lorem malesuada hendrerit vitae quis est. Sed blandit egestas hendrerit. Praesent eu fringilla elit. Nullam ultrices, risus et consequat pretium, risus erat vulputate magna, consequat laoreet erat magna eu ex. Nunc et mollis mauris. Etiam nec tortor eget dolor laoreet aliquam ut nec erat.
-
-Donec sed libero leo. Sed venenatis ante non dui tempus, sed pretium ex tristique. Ut mauris urna, rhoncus in euismod sed, cursus convallis dui. Nunc pretium, neque eget vestibulum convallis, risus metus porta sapien, auctor faucibus felis justo eget orci. Pellentesque nec aliquam metus. Duis ultricies enim blandit sem lobortis, nec posuere odio mattis. Sed eleifend ex ut interdum aliquet. Fusce quam enim, efficitur ac viverra eu, sagittis vel nulla.
-
-* [Go back to the welcome section!](#Welcome)
-
-# Test
-
-You just invoked a test function, if it was defined!
-
-Here is some fancy lorem ipsum text to make this section a little bigger. This will allow you to see how Questmark makes use of existing Markdown functionality to transport you to different states of a dialogue tree!
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc nibh elit, lacinia eu tortor at, scelerisque vulputate leo. Cras sollicitudin tincidunt lorem ac consectetur. Sed et aliquam lacus. Vestibulum condimentum porttitor orci in interdum. Donec iaculis vitae diam id elementum. Donec sed orci augue. Curabitur scelerisque felis nec justo molestie, id placerat augue bibendum. Integer fermentum ut quam at convallis. Quisque a augue sed libero finibus viverra a at nulla.
-
-In aliquet placerat justo, id varius elit vulputate ut. Quisque finibus tellus sed mi imperdiet, et accumsan nunc dapibus. Nam massa tortor, luctus non ante in, volutpat commodo ante. Vestibulum quis nisl eu enim suscipit sagittis. Proin lacinia erat ut cursus elementum. Curabitur rhoncus dictum lectus, auctor tempus neque congue sit amet. Nulla sagittis euismod lorem, et fringilla odio consequat sit amet. Curabitur imperdiet, mi lobortis luctus varius, mauris urna pharetra magna, tincidunt rutrum massa risus sed diam. In hac habitasse platea dictumst. Etiam at sollicitudin ligula. Duis in vestibulum ante. In a lectus tortor. Donec porttitor quam id fringilla egestas. Aenean pretium nulla vitae purus vehicula, ut mattis purus sagittis. Etiam eget vestibulum neque.
-
-Sed maximus, sem sed venenatis faucibus, augue mauris rutrum eros, non ullamcorper risus lorem in elit. Donec lorem augue, ornare quis sapien nec, accumsan dictum quam. Quisque nec tristique quam. Nullam vel tortor at massa congue condimentum. Nunc id ultricies tortor. Quisque vel purus neque. Nullam urna tortor, hendrerit quis quam tincidunt, vehicula iaculis felis. Suspendisse potenti. Nulla pharetra, sapien a fringilla ornare, ligula justo bibendum augue, quis luctus elit diam sed libero. Quisque non augue sit amet sem eleifend ultrices. Quisque blandit tempus erat. In varius magna sit amet dapibus commodo. Nunc sit amet pulvinar arcu. Suspendisse elementum massa vel ligula dapibus dapibus.
-
-Proin vel euismod justo. Vivamus placerat urna ac urna dapibus viverra. Morbi dictum lectus vel vestibulum mollis. Cras dictum semper venenatis. Nullam gravida id augue id tempor. Morbi ante leo, consectetur sit amet sollicitudin eu, sagittis eu elit. Proin quis leo tellus. In maximus tempor faucibus. Pellentesque eu facilisis nulla. Morbi at mollis ligula. Sed non quam ut lorem malesuada hendrerit vitae quis est. Sed blandit egestas hendrerit. Praesent eu fringilla elit. Nullam ultrices, risus et consequat pretium, risus erat vulputate magna, consequat laoreet erat magna eu ex. Nunc et mollis mauris. Etiam nec tortor eget dolor laoreet aliquam ut nec erat.
-
-Donec sed libero leo. Sed venenatis ante non dui tempus, sed pretium ex tristique. Ut mauris urna, rhoncus in euismod sed, cursus convallis dui. Nunc pretium, neque eget vestibulum convallis, risus metus porta sapien, auctor faucibus felis justo eget orci. Pellentesque nec aliquam metus. Duis ultricies enim blandit sem lobortis, nec posuere odio mattis. Sed eleifend ex ut interdum aliquet. Fusce quam enim, efficitur ac viverra eu, sagittis vel nulla.
-
-* [Go back to the welcome section!](#Welcome)
-
+See [cli.ts](https://github.com/jorisvddonk/questmark/blob/master/src/cli.ts) in the meantime.
