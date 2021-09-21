@@ -53,19 +53,30 @@ Flowers are very good, but you probably want to know more about defining states 
 
 To declare a state, simply write a Markdown header using a single hash character (#) followed by a space and then your State's identifier (name). For compatibility reasons with many Markdown reader software, I'd recommend that you don't use any spaces within your State names, and keep everything lowercase.
 
+For example:
+
+\# my_awesome_state
+
 Once you've declared a state, follow it with an empty newline, and then start writing text that contains the text body of your State.
 
 * [Learn more about declaring options](#declaring_simple_options)
 
 # declaring_simple_options
 
-Declaring Options is pretty simple: you use Markdown bulletpoints followed by a line of text (the option text that the user will see, like "I heard you like Hamsters" or "Pick up the can")! If you check the source code of this document, you'll see how this has been done so far.
+Declaring Options is pretty simple: you use Markdown bulletpoints followed by a line of text (the option text that the user will see, like "I heard you like Hamsters" or "Pick up the can")! If you check the source code of this document, you'll see how this has been done so far, but here's an example:
+
+\* Pick up the can
+
 
 All (!) bulletpoints within a State are interpreted as Options, and will be presented to the user as such.
 
 If a bulletpoint has a Markdown link that encapsulates its text completely, the link target attribute of this link specifies the state name that's targeted by that Option. It should be noted that bulletpoints do NOT (!) have to contain Markdown links for them to be Options. When a bulletpoint does not contain any Markdown links and just plain text, it's said to be a "No Link Option". These are very useful, especially for conversation trees, but more on them later.
 
 In case you forgot, to create a Markdown link you write a square bracket open ([), followed by the link text, followed by a square bracket close (]), followed by an open parenthesis and a hash ((#) followed by the link target, which is the target State name, followed by a close parenthesis ()).
+
+Here's an example of an option with the text "hi there" that would go to the "my_awesome_state" state:
+
+\* \[hi there\]\(\#my_awesome_state\)
 
 Options can be written anywhere within a State, but it is *very* important that you understand that the *first* Option that appears within a State's text body is very, *very* special, as it signifies the start of the Options Section of a State. *A State's text body ends where its Options Section begins*.
 
@@ -193,13 +204,13 @@ The scripting language, Tzo (https://github.com/jorisvddonk/tzo) is a stack-base
 
 So far, you haven't seen any scripting just yet. No scripts at all have been invoked so far. You can double-check by reading the source code of this questmark document.
 
-Adding scripting to a document is fairly straightforward. You simply use Markdown inline code fragments (which you start and end using backticks (`)) and write Tzo ConciseText Representation (https://github.com/jorisvddonk/tzo#concisetext-representation) in between the backticks that represent your code. The most difficult part, really, is writing the *right* code. Hopefully, examples in this document and elsewhere will be a good guide for you.
+Adding scripting to a document is fairly straightforward. You simply use Markdown inline code fragments (which you start and end using backticks (\`)) and write Tzo ConciseText Representation (https://github.com/jorisvddonk/tzo#concisetext-representation) in between the backticks that represent your code. The most difficult part, really, is writing the *right* code. Hopefully, examples in this document and elsewhere will be a good guide for you.
 
-As an example, if I were to write '1 1 +' between backticks, then Questmark would push the number 1 to the stack twice, and then pop both of them, add them up, pushing the result back to the stack. If I wanted to display this result back to the user, I'd use the "emit" foreign opcode: '1 1 + emit'
+As an example, if I were to write \`1 1 +\`, then Questmark would push the number 1 to the stack twice, and then pop both of them, add them up, pushing the result back to the stack. If I wanted to display this result back to the user, I'd use the "emit" foreign opcode: \`1 1 + emit\`
 
 Here, let's give it a spin:
 
-The result of '1 1 + emit' is: `1 1 + emit`
+The result of \`1 1 + emit\` is: `1 1 + emit`
 
 Neat!
 
@@ -213,11 +224,11 @@ Glad you remembered about effects, context and variables!
 
 We can use simple Tzo core opcodes to set, get and delete variables in the Context.
 
-For example, the result of '"myCounter" getContext emit' is: `"myCounter" getContext emit`
+For example, the result of \`"myCounter" getContext emit\` is: `"myCounter" getContext emit`
 
 To increment this counter as part of an Option, we can simply write code anywhere as part of an Option's Transition Text, or we can write code directly within the bulletpoint line, after the Markdown link element or No Link Option text.
 
-* increment the counter using '"myCounter" getContext 1 + "myCounter" setContext' `"myCounter" getContext 1 + "myCounter" setContext`
+* increment the counter using \`"myCounter" getContext 1 + "myCounter" setContext\` `"myCounter" getContext 1 + "myCounter" setContext`
 
 The value of myCounter is now: `"myCounter" getContext emit`
 
@@ -243,7 +254,7 @@ The value of myCounter is now: `"myCounter" getContext emit`
 
 The value of myCounter is now: `"myCounter" getContext emit`
 
-* `"myCounter" getContext 3 eq` So taht counter that's now 3, make it 4 `4 "myCounter" setContext`
+* `"myCounter" getContext 3 eq` So that counter that's now 3, make it 4 `4 "myCounter" setContext`
 
 The value of myCounter is now: `"myCounter" getContext emit`
 
@@ -263,9 +274,9 @@ You might have seen, if you read some Questmark source code documents like this 
 
 Directives are designed to simplify common use cases. They're effectively "macros" for common functionality, but there's a slight catch: you can't define these yourself, and they're a compile-time feature as they're defined in the Questmark first-pass Tzo compiler.
 
-Directives are easy to recognize: they're simple tags, prefixed with an at sign (@), surrounded by backticks (`). Internally, they use a different code path, and so you can NOT match Directives with regular Tzo bytecode. If you try, things will just break.
+Directives are easy to recognize: they're simple tags, prefixed with an at sign (@), surrounded by backticks (\`), like so: \`@once\`. Internally, they use a different code path, and so you can NOT match Directives with regular Tzo bytecode. If you try, things will just break.
 
-At the moment, there's only one directive: "@once". This directive ensures that a given option is only ever available once: once you select it, you can never select it again. The Questmark compiler manages the required Context variables and conditionals for you so you don't have to think about it!
+At the moment, there's only one directive: \`@once\`. This directive ensures that a given option is only ever available once: once you select it, you can never select it again. The Questmark compiler manages the required Context variables and conditionals for you so you don't have to think about it!
 
 Here are some examples:
 
@@ -291,7 +302,7 @@ woot
 
 As mentioned previously, Questmark compiles down to Tzo bytecode, ready to be interepreted by a Tzo interpreter that implements Questmark's specific foreign functions and Questmark's conventions. Any code blocks (other than directives) you write as part of a Questmark document will actually literally end up within the output Tzo bytecode. As such, when you want to do a custom game integration, you can use Tzo's foreign function functionality to perform your own custom game logic.
 
-For instance, in one of the Author's own games, '"hello.ogg" playAudio' is used to play a voice-over file, and '"city.png" displayBackground' is used to load and display a State-specific background image.
+For instance, in one of the Author's own games, \`"hello.ogg" playAudio\` is used to play a voice-over file, and \`"city.png" displayBackground\` is used to load and display a State-specific background image.
 
 You could also use these foreign functions to customize the text appearance, as well, though whether or not that makes sense considering that Markdown also supports inline HTML is a good question that the Author has no good answer to at the moment. This is something worthy of additional research and experimentation in the future.
 
@@ -301,7 +312,7 @@ You could also use these foreign functions to customize the text appearance, as 
 
 Displaying text conditionally can be a challenging task in some languages, but it's relatively staightforward in Questmark.
 
-Remember that Markdown code blocks are literally emitted in the resulting Tzo bytecode by the Questmark Tzo compiler? Well, something VERY similar happens to regular Markdown text: when you write "hi there" in Markdown, the resulting Tzo bytecode (in ConciseText representation) actually looks like this: '"hi there" emit'. Basically, the paragraph you wrote is written as a Tzo string literal, followed by the 'emit' opcode.
+Remember that Markdown code blocks are literally emitted in the resulting Tzo bytecode by the Questmark Tzo compiler? Well, something VERY similar happens to regular Markdown text: when you write "hi there" in Markdown, the resulting Tzo bytecode (in ConciseText representation) actually looks like this: \`"hi there" emit\`. Basically, the paragraph you wrote is written as a Tzo string literal, followed by the 'emit' opcode.
 
 Don't worry if that didn't make any sense to you. The important bit is that it means that you can use Tzo's conditional logic and jumping routines to fence blocks off, preventing them from getting displayed to the user (getting emitted).
 
