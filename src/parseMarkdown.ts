@@ -36,6 +36,7 @@ export function parseMarkdown(file_contents: string) {
   const root = u('questmarkDocument', { options: {} }, []);
   let last_once_directive_nr = 0;
   let noLinkBehaviour = NoLinkBehaviour.LOOPBACK_TO_OPTIONS;
+  let retainWhitespace = false;
   visitParents(tree, 'heading', (x, ancestors) => {
     if (ancestors.length > 1) {
       return;
@@ -120,7 +121,7 @@ export function parseMarkdown(file_contents: string) {
       visit(li, n => {
         if (text.length > 0 && n.type !== "paragraph") {
           if (n.type === "text" && n.value && (n.value as string).trim().length === 0) {
-            // skip this one; whitespace only node!
+            // whitespace only node!
           } else {
             effectNodes.push(n);
           }
@@ -218,6 +219,12 @@ export function parseMarkdown(file_contents: string) {
                 throw new Error(`Unknown 'options.no_link_behaviour': ${node.options["options"]["no_link_behaviour"]}`);
               }
             }
+
+            if (node.options["options"]["whitespace"]) {
+              if (node.options["options"]["whitespace"] === "retain") {
+                retainWhitespace = true;
+              }
+            }
           }
         }
         break;
@@ -260,7 +267,7 @@ export function parseMarkdown(file_contents: string) {
           if (option.text !== null) {
             if (option.text.includes("`")) {
               // TODO: support inlineCode in options. Can do via `concat`.
-              console.warn("Option text contains a backtick. Inline code elements in option blocks is currently not supported!");
+              console.warn("WARN: Option text contains a backtick. Inline code elements in option blocks is currently not supported!");
             }
             q(pushString(option.text))
           }
@@ -286,7 +293,12 @@ export function parseMarkdown(file_contents: string) {
                 const instructions = tokenizer.transform(tokens);
                 instructions.forEach(i => q(i));
               } else {
-                q(pushString(child.value as string));
+                if (retainWhitespace) {
+                  const text = file_contents.substring(child.position.start.offset, child.position.end.offset);
+                  q(pushString(text + '\n\n')); // TODO: fix issue where bold text gets extra newlines added
+                } else {
+                  q(pushString(child.value as string));
+                }
                 q(invokeFunction("emit"));
               }
             })
@@ -327,7 +339,12 @@ export function parseMarkdown(file_contents: string) {
         instructions.forEach(i => q(i));
         break;
       case "text":
-        q(pushString(node.value as string));
+        if (retainWhitespace) {
+          const text = file_contents.substring(node.position.start.offset, node.position.end.offset);
+          q(pushString(text + '\n\n')); // TODO: fix issue where bold text gets extra newlines added
+        } else {
+          q(pushString(node.value as string));
+        }
         q(invokeFunction("emit"));
         break;
       default:

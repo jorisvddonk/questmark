@@ -7,7 +7,9 @@
         "myCounter": 0,
         "coin": 0
       },
-      "options": {}
+      "options": {
+        "whitespace": "retain"
+      }
     }
 
 # introduction
