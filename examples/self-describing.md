@@ -212,7 +212,7 @@ As an example, if I were to write \`1 1 +\`, then Questmark would push the numbe
 
 Here, let's give it a spin:
 
-The result of \`1 1 + emit\` is: `1 1 + emit`
+The result of \`1 1 + emit\` is: `1 1 + emit`.
 
 Neat!
 
@@ -226,13 +226,13 @@ Glad you remembered about effects, context and variables!
 
 We can use simple Tzo core opcodes to set, get and delete variables in the Context.
 
-For example, the result of \`"myCounter" getContext emit\` is: `"myCounter" getContext emit`
+For example, the result of \`"myCounter" getContext emit\` is: `"myCounter" getContext emit`.
 
 To increment this counter as part of an Option, we can simply write code anywhere as part of an Option's Transition Text, or we can write code directly within the bulletpoint line, after the Markdown link element or No Link Option text.
 
 * increment the counter using \`"myCounter" getContext 1 + "myCounter" setContext\` `"myCounter" getContext 1 + "myCounter" setContext`
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 * [Okay, cool, let's talk about conditional options!](#conditional_options)
 
@@ -240,29 +240,29 @@ The value of myCounter is now: `"myCounter" getContext emit`
 
 (Let's just reset this counter back to 0.... `0 "myCounter" setContext` There, done! :P )
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 To conditionally enable an option, simply *prefix* the option text with a code block that pushes a single (!) number onto the stack. If the value on the stack is 1 or greater, then the Option is enabled. Otherwise, it's not.
 
 * `"myCounter" getContext 0 eq` Set the value of myCounter (currently: 0) to 1 `1 "myCounter" setContext`
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 * `"myCounter" getContext 1 eq` Let's do that again: set the value of myCounter (currently: 1) to 2 `2 "myCounter" setContext`
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 * `"myCounter" getContext 2 eq` Awesome! Set the value of myCounter (currently: 2) to 3 `3 "myCounter" setContext`
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 * `"myCounter" getContext 3 eq` So that counter that's now 3, make it 4 `4 "myCounter" setContext`
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 * `"myCounter" getContext 4 eq` There are 4 lights on my counter. MAKE THEM 5!!! `5 "myCounter" setContext`
 
-The value of myCounter is now: `"myCounter" getContext emit`
+The value of myCounter is now: `"myCounter" getContext emit`.
 
 * [I think I understand what's going on. Can you teach me about Directives next?](#directives)
 

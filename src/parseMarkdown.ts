@@ -188,6 +188,23 @@ export function parseMarkdown(file_contents: string) {
     qvmState.programList.push(a);
   }
   const visitorFunc: Visitor<Node> = (node, index, parent) => {
+    let fixText = (n: Node) => {
+      let text = "";
+      if (retainWhitespace) {
+        text = file_contents.substring(n.position.start.offset, n.position.end.offset);
+      } else {
+        text = n.value as string;
+      }
+      if (parent.type === "paragraph" && parent.children.indexOf(n) === parent.children.length - 1) {
+        text = text + '\n\n';
+      }
+      text = text.replaceAll('\\*', '*').replaceAll('\\[', '[').replaceAll('\\]', ']').replaceAll('\\#', '#').replaceAll('\\`', '`').replaceAll('\\(', '(').replaceAll('\\)', ')')
+      if (parent.type === "emphasis" || parent.type === "strong") {
+        text = `*${text}*`;
+      }
+      return text;
+    }
+
     if (parent === undefined && node.type !== "questmarkDocument") {
       return;
     }
@@ -293,12 +310,7 @@ export function parseMarkdown(file_contents: string) {
                 const instructions = tokenizer.transform(tokens);
                 instructions.forEach(i => q(i));
               } else {
-                if (retainWhitespace) {
-                  const text = file_contents.substring(child.position.start.offset, child.position.end.offset);
-                  q(pushString(text + '\n\n')); // TODO: fix issue where bold text gets extra newlines added
-                } else {
-                  q(pushString(child.value as string));
-                }
+                q(pushString(fixText(child)));
                 q(invokeFunction("emit"));
               }
             })
@@ -339,12 +351,7 @@ export function parseMarkdown(file_contents: string) {
         instructions.forEach(i => q(i));
         break;
       case "text":
-        if (retainWhitespace) {
-          const text = file_contents.substring(node.position.start.offset, node.position.end.offset);
-          q(pushString(text + '\n\n')); // TODO: fix issue where bold text gets extra newlines added
-        } else {
-          q(pushString(node.value as string));
-        }
+        q(pushString(fixText(node)));
         q(invokeFunction("emit"));
         break;
       default:
