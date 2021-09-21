@@ -14,7 +14,9 @@ program
   .parse(process.argv);
 
 const input_file = fs.readFileSync(program.input).toString();
-const vm = new QuestVM(body => process.stdout.write(`${body}`), (choices: Choice[]) => {
+const vm = new QuestVM(body => {
+  process.stdout.write(`${body}`)
+}, (choices: Choice[]) => {
   process.stdout.write("\n"); // add newline to make inquirer not overwrie any previously emitted text
   return inquirer.prompt([{
     type: "list",
