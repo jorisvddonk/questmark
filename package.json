@@ -1,6 +1,6 @@
 {
   "name": "questmark",
-  "version": "0.0.25",
+  "version": "0.0.28",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/mjs/index.js",
@@ -29,7 +29,7 @@
     "mdast": "^3.0.0",
     "mdast-util-from-markdown": "^0.1.1",
     "node-fetch": "^2.6.5",
-    "tzo": "^1.0.9",
+    "tzo": "^1.0.13",
     "unist-builder": "^2.0.3",
     "unist-util-filter": "^2.0.2",
     "unist-util-find-after": "^3.0.0",

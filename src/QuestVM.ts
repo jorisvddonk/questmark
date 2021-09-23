@@ -1,8 +1,7 @@
 import { EventEmitter } from "events";
 import { Stack, Functions } from "tzo";
 import { Context } from "tzo";
-import pkg from 'tzo';
-const { VM, getStackParams } = pkg;
+import { VM, getStackParams } from "tzo";
 
 export interface Choice {
   title: string,
@@ -21,13 +20,13 @@ export class QuestVM extends VM {
           this.eventBus.emit('emit', str1);
           emitFunction(str1);
         },
-        "response": (stack: Stack, context: Context, vm: VMType) => {
+        "response": (stack: Stack, context: Context, vm: VM) => {
           const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
           const response = { response: str1, pc: num1 };
           this.eventBus.emit('response', response);
           this.responses.push(response);
         },
-        "getResponse": (stack: Stack, context: Context, vm: VMType) => {
+        "getResponse": (stack: Stack, context: Context, vm: VM) => {
           vm.suspend();
           const choices = this.responses.map((resp, index) => { return { title: resp.response, programCounter: resp.pc, id: index }; })
           const sChoices: Choice[] = choices.map(c => ({ title: c.title, id: c.id }));
@@ -46,7 +45,7 @@ export class QuestVM extends VM {
             this.quit();
           });
         },
-        "optionEnabled": (stack: Stack, context: Context, vm: VMType) => {
+        "optionEnabled": (stack: Stack, context: Context, vm: VM) => {
           // DEPRECATED - do not use!
           console.warn("optionEnabled opcode is deprecated! - do not use!");
           const [str1] = getStackParams("optionEnabled", ["string"], stack) as [string];
@@ -60,7 +59,7 @@ export class QuestVM extends VM {
           }
           stack.push(retval);
         },
-        "optionDisabled": (stack: Stack, context: Context, vm: VMType) => {
+        "optionDisabled": (stack: Stack, context: Context, vm: VM) => {
           // DEPRECATED - do not use!
           console.warn("optionDisabled opcode is deprecated! - do not use!");
           const [str1] = getStackParams("optionDisabled", ["string"], stack) as [string];
@@ -74,14 +73,14 @@ export class QuestVM extends VM {
           }
           stack.push(retval);
         },
-        "disableOption": (stack: Stack, context: Context, vm: VMType) => {
+        "disableOption": (stack: Stack, context: Context, vm: VM) => {
           // DEPRECATED - do not use!
           console.warn("disableOption opcode is deprecated! - do not use!");
           const [str1] = getStackParams("disableOption", ["string"], stack) as [string];
           const optstr = `optionEnabled_${str1}`;
           vm.context[optstr] = 0;
         },
-        "enableOption": (stack: Stack, context: Context, vm: VMType) => {
+        "enableOption": (stack: Stack, context: Context, vm: VM) => {
           // DEPRECATED - do not use!
           console.warn("enableOption opcode is deprecated! - do not use!");
           const [str1] = getStackParams("enableOption", ["string"], stack) as [string];

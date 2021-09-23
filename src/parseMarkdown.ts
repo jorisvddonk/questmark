@@ -10,8 +10,7 @@ import visit, { Visitor } from "unist-util-visit";
 import u from "unist-builder";
 import 'array-flat-polyfill';
 import { TzoVMState } from "tzo";
-import pkg from 'tzo';
-const { Tokenizer, pushString, pushNumber, invokeFunction } = pkg;
+import { Tokenizer, pushString, pushNumber, invokeFunction } from "tzo";
 
 export type Directive = string;
 
