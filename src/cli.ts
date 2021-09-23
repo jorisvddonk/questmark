@@ -6,10 +6,10 @@ import inquirer from "inquirer";
 import { TzoVMState } from "tzo";
 
 program
-  .version('0.0.1')
+  .version('0.0.2')
   .option('-c, --clear', 'Clear console on each state')
   .option('--input <path>', "Load source .md or .json file", "examples/cookieStore.md")
-  .option('--output <path>', "Emit VMState .json file", "out.json")
+  .option('--output <path>', "Emit VMState .json file")
   .option('--no-run', "Do not actually load and run the VM; just parse input and (optionally) emit output")
   .parse(process.argv);
 
