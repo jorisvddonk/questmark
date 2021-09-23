@@ -7,7 +7,7 @@ import { TzoVMState } from "tzo";
 import fetch from "node-fetch";
 
 program
-  .version('0.0.2')
+  .version('0.0.12')
   .option('-c, --clear', 'Clear console on each state')
   .option('--input <path>', "Load source .md or .json file from path. Path can be either from local filesystem, or via HTTP(S) URL")
   .option('--output <path>', "Emit VMState .json file")
