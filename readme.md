@@ -42,7 +42,6 @@ You should look in the [examples](https://github.com/jorisvddonk/questmark/blob/
 
 There are a few things that are still a bit "up in the air" and need to be thought about or implemented properly:
 
-* How should whitespace be treated?
 * How should inline HTML be treated?
 * How can the Questmark compiler be modified to add custom directives and macros?
 * How can a Questmark document be translated to another language, whilst keeping the scripting logic intact and easy to modify?
@@ -68,6 +67,34 @@ npx questmark --input path_to_questmark_document.md
 TODO: document this.
 
 See [cli.ts](https://github.com/jorisvddonk/questmark/blob/master/src/cli.ts) in the meantime.
+
+# Questmark cli usage
+
+If you have Node.js installed, you can use the Questmark cli via [`npx`](https://docs.npmjs.com/cli/v7/commands/npx).
+
+To get cli usage instructions:
+
+```bash
+npx questmark --help
+```
+
+To play through a Questmark document:
+
+```bash
+npx questmark --input <path_to_file.md>
+```
+
+You can also play a Questmark document that's hosted online:
+
+```bash
+npx questmark --input https://ghcdn.rawgit.org/jorisvddonk/questmark/master/examples/self-describing.md
+```
+
+To convert a Questmark .md file to Tzo bytecode (VMState), without interpreting the document:
+
+```bash
+npx questmark --input <path_to_file.md> --output <path_to_output_VMState.json> --no-run
+```
 
 # Other tools / libraries
 
