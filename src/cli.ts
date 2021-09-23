@@ -1,7 +1,7 @@
 import fs from "fs";
 import program from "commander";
-import { parseMarkdown } from "./parseMarkdown";
-import { Choice, QuestVM } from "./QuestVM";
+import { parseMarkdown } from "./parseMarkdown.js";
+import { Choice, QuestVM } from "./QuestVM.js";
 import inquirer from "inquirer";
 import { TzoVMState } from "tzo";
 import fetch from "node-fetch";
