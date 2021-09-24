@@ -271,7 +271,7 @@ export function parseMarkdown(file_contents: string) {
             has_precondition = true;
             option.preconditionChildren.forEach(child => {
               if (child.type === "inlineCode") {
-                tokenizer.transform(tokenizer.tokenize(child.value as string)).forEach(i => q(i));
+                tokenizer.parse(child.value as string).forEach(i => q(i));
               } else {
                 throw new Error("preconditionChildren contain non-inlineCode elements. Aborting!");
               }
@@ -301,14 +301,12 @@ export function parseMarkdown(file_contents: string) {
           if (option.effectChildren !== null) {
             option.effectChildren.forEach(child => {
               if (child.type === "inlineCode") {
-                tokenizer.transform(tokenizer.tokenize(child.value as string)).forEach(i => q(i));
+                tokenizer.parse(child.value as string).forEach(i => q(i));
               } else if (child.type === "code") {
                 if (child.lang === "comment") {
                   return;
                 }
-                const tokens = tokenizer.tokenize(child.value as string);
-                const instructions = tokenizer.transform(tokens);
-                instructions.forEach(i => q(i));
+                tokenizer.parse(child.value as string).forEach(i => q(i));
               } else {
                 q(pushString(fixText(child)));
                 q(invokeFunction("emit"));
@@ -346,9 +344,7 @@ export function parseMarkdown(file_contents: string) {
         if (node.lang === "comment") {
           break;
         }
-        const tokens = tokenizer.tokenize(node.value as string);
-        const instructions = tokenizer.transform(tokens);
-        instructions.forEach(i => q(i));
+        tokenizer.parse(node.value as string).forEach(i => q(i));
         break;
       case "text":
         q(pushString(fixText(node)));
