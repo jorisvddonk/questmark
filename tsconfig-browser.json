@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "declarationDir": "./dist/browser",
+    "outDir": "./dist/browser",
+    "target": "es2015"
+  }
+}
