@@ -53,8 +53,10 @@ async function load() {
 
   if (program.input.endsWith(".json")) {
     vmState = JSON.parse(input_file) as TzoVMState;
-  } else if (program.input.endsWith(".md") || program.input.endsWith(".md.html")) {
+  } else if (program.input.endsWith(".qmd") || program.input.endsWith(".qmd.html") || program.input.endsWith(".md") || program.input.endsWith(".md.html")) {
     vmState = parseMarkdown(input_file).qvmState;
+  } else {
+    throw new Error("Program input file needs to have .json or .qmd / .qmd.html / .md / .md.html extension!")
   }
 
   if (program.output) {
