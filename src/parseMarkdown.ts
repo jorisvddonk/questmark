@@ -30,6 +30,11 @@ export enum NoLinkBehaviour {
   LOOPBACK_TO_OPTIONS = 1 // DEFAULT: Loopback to the options section if no link is found for an option and an option does not explicitly call an `exit` or `goto` effect.
 }
 
+enum EmitOn {
+  CLASSIC = 0, // classic behaviour
+  END_OF_LINE = 1, // only on end of line
+}
+
 export function parseMarkdown(file_contents: string) {
   const tree = fromMarkdown(file_contents);
   const tokenizer = new Tokenizer();
@@ -37,6 +42,9 @@ export function parseMarkdown(file_contents: string) {
   let last_once_directive_nr = 0;
   let noLinkBehaviour = NoLinkBehaviour.LOOPBACK_TO_OPTIONS;
   let retainWhitespace = false;
+  let emitOn = EmitOn.CLASSIC;
+  let missed_emits = 0;
+  let strip_leading_newlines = false;
   visitParents(tree, 'heading', (x, ancestors) => {
     if (ancestors.length > 1) {
       return;
@@ -188,19 +196,27 @@ export function parseMarkdown(file_contents: string) {
     qvmState.programList.push(a);
   }
   const visitorFunc: Visitor<Node> = (node, index, parent) => {
-    let fixText = (n: Node) => {
+    let getText = (n: Node) => {
       let text = "";
       if (retainWhitespace) {
         text = file_contents.substring(n.position.start.offset, n.position.end.offset);
       } else {
         text = n.value as string;
       }
+      return text;
+    }
+
+    let fixText = (n: Node) => {
+      let text = getText(n);
       if (parent.type === "paragraph" && parent.children.indexOf(n) === parent.children.length - 1) {
         text = text + '\n\n';
       }
       text = text.replaceAll('\\*', '*').replaceAll('\\[', '[').replaceAll('\\]', ']').replaceAll('\\#', '#').replaceAll('\\`', '`').replaceAll('\\(', '(').replaceAll('\\)', ')')
       if (parent.type === "emphasis" || parent.type === "strong") {
         text = `*${text}*`;
+      }
+      if (strip_leading_newlines) {
+        text = text.replace(/^[\r\n]+/, "");
       }
       return text;
     }
@@ -242,6 +258,18 @@ export function parseMarkdown(file_contents: string) {
                 retainWhitespace = true;
               }
             }
+
+            if (node.options["options"]["emit_on"]) {
+              if (node.options["options"]["emit_on"] === "end_of_line") {
+                emitOn = EmitOn.END_OF_LINE;
+              }
+            }
+
+            if (node.options["options"]["strip_leading_newlines"]) {
+              if (node.options["options"]["strip_leading_newlines"] === true) {
+                strip_leading_newlines = true;
+              }
+            }
           }
         }
         break;
@@ -250,6 +278,15 @@ export function parseMarkdown(file_contents: string) {
         const nodeOptionsLabel = node.name + "__options" as string;
         qvmState.labelMap[nodeLabel] = qvmState.programList.length;
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
+        // if there are any missing emits, perform them now
+        if (missed_emits > 0) {
+          while(missed_emits > 1) {
+            q(invokeFunction("rconcat"));
+            missed_emits -= 1;
+          }
+          missed_emits = 0;
+          q(invokeFunction("emit")); // need to still emit!
+        }
         qvmState.labelMap[nodeOptionsLabel] = qvmState.programList.length; // add a label immediately after the node's options to be able to shortcut jump to in certain cases
         (node.options as OptionNode[]).forEach(option => {
           let has_precondition = false;
@@ -308,11 +345,31 @@ export function parseMarkdown(file_contents: string) {
                 }
                 tokenizer.parse(child.value as string).forEach(i => q(i));
               } else {
-                q(pushString(fixText(child)));
-                q(invokeFunction("emit"));
+                let t = getText(child);
+                q(pushString(fixText(child), t));
+                if (emitOn === EmitOn.CLASSIC || (emitOn === EmitOn.END_OF_LINE && t.replace(/[\t\f\v ]+$/, "").endsWith('\n'))) {
+                  while (missed_emits > 0) {
+                    q(invokeFunction("rconcat"));
+                    missed_emits -= 1;
+                  }
+                  q(invokeFunction("emit"));
+                } else {
+                  missed_emits += 1;
+                }
               }
             })
           }
+
+          // if there are any missing emits, perform them now before we close off this option effect body
+          if (missed_emits > 0) {
+            while(missed_emits > 1) {
+              q(invokeFunction("rconcat"));
+              missed_emits -= 1;
+            }
+            missed_emits = 0;
+            q(invokeFunction("emit")); // need to still emit!
+          }
+
           if (option.link !== null) {
             q(pushString(option.link.substr(1)));
             q(invokeFunction("goto"));
@@ -347,8 +404,17 @@ export function parseMarkdown(file_contents: string) {
         tokenizer.parse(node.value as string).forEach(i => q(i));
         break;
       case "text":
-        q(pushString(fixText(node)));
-        q(invokeFunction("emit"));
+        let t = getText(node);
+        q(pushString(fixText(node), t));
+        if (emitOn === EmitOn.CLASSIC || (emitOn === EmitOn.END_OF_LINE && t.replace(/[\t\f\v ]+$/, "").endsWith('\n'))) {
+          while (missed_emits > 0) {
+            q(invokeFunction("rconcat"));
+            missed_emits -= 1;
+          }
+          q(invokeFunction("emit"));
+        } else {
+          missed_emits += 1;
+        }
         break;
       default:
         break;
