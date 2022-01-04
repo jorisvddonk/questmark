@@ -3,3 +3,4 @@ src/
 .antlr/
 examples/
 *.log
+_temp/

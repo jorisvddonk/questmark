@@ -1,0 +1,11 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "module": "commonjs",
+      "declarationDir": "./_temp/",
+      "outDir": "./_temp/",
+      "rootDir": ".",
+      "target": "es6",
+      "allowUmdGlobalAccess": true,
+    },
+  }
