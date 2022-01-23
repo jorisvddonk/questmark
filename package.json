@@ -28,7 +28,7 @@
     "inquirer": "^6.2.0",
     "mdast": "^3.0.0",
     "mdast-util-from-markdown": "^0.1.1",
-    "node-fetch": "^2.6.5",
+    "node-fetch": "^3.1.1",
     "tzo": "^1.0.19",
     "unist-builder": "^2.0.3",
     "unist-util-filter": "^2.0.2",
