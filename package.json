@@ -14,7 +14,7 @@
     "prepublishOnly": "npm run build",
     "build": "npx cross-env rm -rf dist/ && tsc -p tsconfig.json && npm run wp_build",
     "wp_build": "webpack build --config webpack.config.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run build && node --test \"test/**/*.test.cjs\"",
     "start": "ts-node ./src/cli"
   },
   "bin": {
