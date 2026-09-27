@@ -28,7 +28,6 @@
     "inquirer": "^14.2.2",
     "mdast": "^3.0.0",
     "mdast-util-from-markdown": "^0.1.1",
-    "node-fetch": "^2.6.5",
     "tzo": "^1.0.19",
     "unist-builder": "^2.0.3",
     "unist-util-filter": "^2.0.2",
@@ -45,9 +44,9 @@
   "devDependencies": {
     "@types/mdast": "^3.0.3",
     "@types/node": "^24.0.0",
-    "node-polyfill-webpack-plugin": "^1.1.4",
+    "node-polyfill-webpack-plugin": "^4.1.0",
     "ts-loader": "^9.2.6",
-    "ts-node": "^9.1.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0",
     "webpack": "^5.54.0",
     "webpack-cli": "^4.8.0"

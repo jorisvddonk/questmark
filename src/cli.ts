@@ -5,7 +5,6 @@ import program from "commander";
 import { parseMarkdown } from "./parseMarkdown";
 import { Choice, QuestVM } from "./QuestVM";
 import { TzoVMState } from "tzo";
-import fetch from "node-fetch";
 
 program
   .version('0.0.37')
