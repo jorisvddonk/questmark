@@ -4,7 +4,17 @@ import findAfter from "unist-util-find-after";
 import removePosition from "unist-util-remove-position";
 import findAllAfter from "unist-util-find-all-after";
 import findAllBetween from "unist-util-find-all-between";
-import { Node } from "unist";
+import { Node as UnistNode } from "unist";
+
+type Node = UnistNode & {
+  value?: string;
+  url?: string;
+  lang?: string;
+  name?: string;
+  ordered?: boolean;
+  options?: { [key: string]: any };
+  children?: Node[];
+};
 import visitParents from "unist-util-visit-parents";
 import visit, { Visitor } from "unist-util-visit";
 import u from "unist-builder";
@@ -70,7 +80,7 @@ export function parseMarkdown(file_contents: string) {
 
   function getQuestmarkOptions(children: Node[]) {
     let code = '';
-    visit(u('bla', children), 'code', n => {
+    visit(u('bla', children), 'code', (n: Node) => {
       code = `${code} ${n.value}`;
     });
     return JSON.parse(code.trim());
@@ -126,7 +136,7 @@ export function parseMarkdown(file_contents: string) {
       let text = [];
       let link = [];
       let directives = [];
-      visit(li, n => {
+      visit(li, (n: Node) => {
         if (text.length > 0 && n.type !== "paragraph") {
           if (n.type === "text" && n.value && (n.value as string).trim().length === 0) {
             // whitespace only node!

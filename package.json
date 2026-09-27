@@ -43,10 +43,7 @@
     "unist-util-visit-parents": "^3.1.0"
   },
   "devDependencies": {
-    "@types/colors": "^1.2.1",
-    "@types/commander": "^2.12.2",
     "@types/inquirer": "^7.3.1",
-    "@types/markdown-it": "^10.0.2",
     "@types/mdast": "^3.0.3",
     "@types/node": "^14.6.0",
     "node-polyfill-webpack-plugin": "^1.1.4",

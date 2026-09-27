@@ -1,5 +1,4 @@
 const path = require('path');
-const TerserPlugin = require('terser-webpack-plugin');
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = {
@@ -34,15 +33,6 @@ module.exports = {
     optimization: {
         minimize: false,
         mangleExports: false,
-        minimizer: [
-            new TerserPlugin({
-                parallel: true,
-                terserOptions: {
-                    keep_classnames: true,
-                    keep_fnames: true
-                },
-            }),
-        ],
     },
     plugins: [
         new NodePolyfillPlugin()
