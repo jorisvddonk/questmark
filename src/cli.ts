@@ -4,7 +4,6 @@ import fs from "fs";
 import program from "commander";
 import { parseMarkdown } from "./parseMarkdown";
 import { Choice, QuestVM } from "./QuestVM";
-import inquirer from "inquirer";
 import { TzoVMState } from "tzo";
 import fetch from "node-fetch";
 
@@ -37,10 +36,11 @@ async function load() {
   const input_file = await load();
   const vm = new QuestVM(body => {
     process.stdout.write(`${body}`)
-  }, (choices: Choice[]) => {
+  }, async (choices: Choice[]) => {
     process.stdout.write("\n"); // add newline to make inquirer not overwrie any previously emitted text
+    const inquirer = (await import("inquirer")).default;
     return inquirer.prompt([{
-      type: "list",
+      type: "select",
       name: "selectedChoice",
       message: " ",
       choices: choices.map(c => ({ name: c.title, value: c.id }))
