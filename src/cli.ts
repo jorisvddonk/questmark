@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 
 import fs from "fs";
-import program from "commander";
-import { parseMarkdown } from "./parseMarkdown";
-import { Choice, QuestVM } from "./QuestVM";
+import { program } from "commander";
+import { parseMarkdown } from "./parseMarkdown.js";
+import { Choice, QuestVM } from "./QuestVM.js";
 import { TzoVMState } from "tzo";
+
+interface CliOptions {
+  clear?: boolean;
+  input?: string;
+  output?: string;
+  run?: boolean;
+}
 
 program
   .version('0.0.37')
@@ -14,18 +21,20 @@ program
   .option('--no-run', "Do not actually load and run the VM; just parse input and (optionally) emit output")
   .parse(process.argv);
 
-if (!program.input) {
+const options = program.opts<CliOptions>();
+
+if (!options.input) {
   console.log("Missing input! Please specify an input file via --input");
   process.exit(1);
 }
 
 async function load() {
   let input_file;
-  if (program.input.startsWith("http://") || program.input.startsWith("https://")) {
-    const res = await fetch(program.input);
+  if (options.input.startsWith("http://") || options.input.startsWith("https://")) {
+    const res = await fetch(options.input);
     input_file = await res.text();
   } else {
-    const input_file_buf = await fs.promises.readFile(program.input);
+    const input_file_buf = await fs.promises.readFile(options.input);
     input_file = input_file_buf.toString();
   }
   return input_file
@@ -50,19 +59,19 @@ async function load() {
 
   let vmState: TzoVMState = undefined;
 
-  if (program.input.endsWith(".json")) {
+  if (options.input.endsWith(".json")) {
     vmState = JSON.parse(input_file) as TzoVMState;
-  } else if (program.input.endsWith(".qmd") || program.input.endsWith(".qmd.html") || program.input.endsWith(".md") || program.input.endsWith(".md.html")) {
+  } else if (options.input.endsWith(".qmd") || options.input.endsWith(".qmd.html") || options.input.endsWith(".md") || options.input.endsWith(".md.html")) {
     vmState = parseMarkdown(input_file).qvmState;
   } else {
     throw new Error("Program input file needs to have .json or .qmd / .qmd.html / .md / .md.html extension!")
   }
 
-  if (program.output) {
-    fs.writeFileSync(program.output, JSON.stringify(vmState, null, 2));
+  if (options.output) {
+    fs.writeFileSync(options.output, JSON.stringify(vmState, null, 2));
   }
 
-  if (program.run) {
+  if (options.run) {
     vm.loadVMState(vmState);
     vm.run();
   }

@@ -1,2 +1,2 @@
-export * from "./QuestVM";
-export * from "./parseMarkdown";
+export * from "./QuestVM.js";
+export * from "./parseMarkdown.js";

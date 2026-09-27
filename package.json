@@ -2,20 +2,18 @@
   "name": "questmark",
   "version": "0.0.37",
   "description": "",
+  "type": "module",
   "main": "dist/node/index.js",
   "types": "dist/node/index.d.js",
   "exports": {
-    ".": {
-      "import": "./dist/node/index.js",
-      "require": "./dist/browser/index.js"
-    }
+    ".": "./dist/node/index.js"
   },
   "scripts": {
     "prepublishOnly": "npm run build",
     "build": "npx cross-env rm -rf dist/ && tsc -p tsconfig.json && npm run wp_build",
-    "wp_build": "webpack build --config webpack.config.js",
+    "wp_build": "webpack build --config webpack.config.cjs",
     "test": "npm run build && node --test \"test/**/*.test.cjs\"",
-    "start": "ts-node ./src/cli",
+    "start": "tsx ./src/cli.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -27,32 +25,32 @@
   "license": "MIT",
   "dependencies": {
     "array-flat-polyfill": "^1.0.1",
-    "commander": "^6.1.0",
+    "commander": "^15.0.0",
     "inquirer": "^14.2.2",
     "mdast": "^3.0.0",
-    "mdast-util-from-markdown": "^0.1.1",
+    "mdast-util-from-markdown": "^2.0.3",
     "tzo": "^1.0.19",
-    "unist-builder": "^2.0.3",
-    "unist-util-filter": "^2.0.2",
-    "unist-util-find-after": "^3.0.0",
-    "unist-util-find-all-after": "^3.0.1",
-    "unist-util-find-all-before": "^3.0.0",
-    "unist-util-find-all-between": "^2.1.0",
-    "unist-util-flat-filter": "^1.0.0",
-    "unist-util-map": "^2.0.1",
-    "unist-util-remove-position": "^3.0.0",
-    "unist-util-visit": "^2.0.3",
-    "unist-util-visit-parents": "^3.1.0"
+    "unist-builder": "^4.0.0",
+    "unist-util-filter": "^5.0.1",
+    "unist-util-find-after": "^5.0.0",
+    "unist-util-find-all-after": "^5.0.0",
+    "unist-util-find-all-before": "^5.0.0",
+    "unist-util-flat-filter": "^2.0.0",
+    "unist-util-map": "^4.0.0",
+    "unist-util-remove-position": "^5.0.0",
+    "unist-util-visit": "^5.1.0",
+    "unist-util-visit-parents": "^6.0.2"
   },
   "devDependencies": {
-    "@types/mdast": "^3.0.3",
-    "@types/node": "^24.0.0",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^26.6.3",
+    "@types/unist": "^3.0.3",
     "node-polyfill-webpack-plugin": "^4.1.0",
     "ts-loader": "^9.2.6",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
     "vitepress": "^1.6.4",
     "webpack": "^5.54.0",
-    "webpack-cli": "^4.8.0"
+    "webpack-cli": "^7.2.3"
   }
 }

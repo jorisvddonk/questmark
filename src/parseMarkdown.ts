@@ -1,9 +1,8 @@
 import { Parent } from "mdast";
-import fromMarkdown from "mdast-util-from-markdown";
-import findAfter from "unist-util-find-after";
-import removePosition from "unist-util-remove-position";
-import findAllAfter from "unist-util-find-all-after";
-import findAllBetween from "unist-util-find-all-between";
+import { fromMarkdown } from "mdast-util-from-markdown";
+import { findAfter } from "unist-util-find-after";
+import { removePosition } from "unist-util-remove-position";
+import { findAllAfter } from "unist-util-find-all-after";
 import { Node as UnistNode } from "unist";
 
 type Node = UnistNode & {
@@ -15,9 +14,9 @@ type Node = UnistNode & {
   options?: { [key: string]: any };
   children?: Node[];
 };
-import visitParents from "unist-util-visit-parents";
-import visit, { Visitor } from "unist-util-visit";
-import u from "unist-builder";
+import { visitParents } from "unist-util-visit-parents";
+import { visit, type Visitor } from "unist-util-visit";
+import { u } from "unist-builder";
 import 'array-flat-polyfill';
 import { TzoVMState } from "tzo";
 import { Tokenizer, pushString, pushNumber, invokeFunction } from "tzo";
@@ -40,6 +39,19 @@ export enum NoLinkBehaviour {
   LOOPBACK_TO_OPTIONS = 1 // DEFAULT: Loopback to the options section if no link is found for an option and an option does not explicitly call an `exit` or `goto` effect.
 }
 
+function childrenBetween(parent: Node, start: Node, end: Node | undefined): Node[] {
+  const children = parent.children || [];
+  const startIndex = children.indexOf(start);
+  if (startIndex === -1) {
+    throw new Error("Expected child node");
+  }
+  const endIndex = end ? children.indexOf(end) : children.length;
+  if (end && endIndex === -1) {
+    throw new Error("Expected child node");
+  }
+  return children.slice(startIndex + 1, endIndex);
+}
+
 enum EmitOn {
   CLASSIC = 0, // classic behaviour
   END_OF_LINE = 1, // only on end of line
@@ -47,8 +59,7 @@ enum EmitOn {
 
 export function parseMarkdown(file_contents: string) {
   const tree = fromMarkdown(file_contents);
-  const tokenizer = new Tokenizer();
-  const root = u('questmarkDocument', { options: {} }, []);
+  const tokenizer = new Tokenizer();  const root = u('questmarkDocument', { options: {} }, []);
   let last_once_directive_nr = 0;
   let noLinkBehaviour = NoLinkBehaviour.LOOPBACK_TO_OPTIONS;
   let retainWhitespace = false;
@@ -69,7 +80,7 @@ export function parseMarkdown(file_contents: string) {
 
     // capture children belonging to this heading group
     const nextHeading = findAfter(tree, x, 'heading');
-    const children = nextHeading !== null ? findAllBetween(tree, x, nextHeading) : findAllAfter(tree, x);
+    const children = nextHeading ? childrenBetween(tree, x, nextHeading) : findAllAfter(tree, x);
 
     if (name === "QUESTMARK-OPTIONS-HEADER") {
       root.options = getQuestmarkOptions(children);
@@ -434,7 +445,7 @@ export function parseMarkdown(file_contents: string) {
   q(invokeFunction("exit")); // ensure we always exit at the end
 
   return {
-    parsedMDFile: removePosition(root, true),
+    parsedMDFile: removePosition(root, { force: true }),
     qvmState
   }
 }
