@@ -14,7 +14,8 @@ side-effects are added with small, backticked code snippets where needed.
 
 ## Documentation
 
-The docs follow the [Diátaxis](https://diataxis.fr/) framework:
+The docs follow the [Diátaxis](https://diataxis.fr/) framework and are also
+rendered as a [hosted website](https://jorisvddonk.github.io/questmark/):
 
 - **[Tutorials](docs/tutorials/)** — start here if you're new. Write and play
   your first conversation in about ten minutes.

@@ -3,5 +3,6 @@ src/
 .antlr/
 examples/
 test/
+docs/.vitepress/
 *.log
 _temp/

@@ -214,5 +214,6 @@ core of the language.
   for more ways to run a document.
 - Read the [language reference](../reference/language.md) for the complete set
   of language features, including the `@once` directive and effects.
-- Browse the [examples](../../examples/) folder — `space_alien.md` is a longer
-  conversation tree that puts everything together.
+- Browse the [examples](https://github.com/jorisvddonk/questmark/tree/master/examples)
+  in the repository — `space_alien.md` is a longer conversation tree that puts
+  everything together.

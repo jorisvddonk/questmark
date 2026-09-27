@@ -19,6 +19,10 @@
     "rootDir": "./src",
     "typeRoots": [
       "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "mdast"
     ]
   },
   "include": ["src/**/*.ts"],
