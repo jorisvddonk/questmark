@@ -31,7 +31,7 @@ The Questmark command line is available from the project directory as
 
 Create a file called `tavern.md` with the following contents:
 
-```markdown
+```markdown{playground}
 # QUESTMARK-OPTIONS-HEADER
 
     {
@@ -96,7 +96,7 @@ called the **context**.
 Update the header to initialize a variable, and set it when the player orders
 a drink:
 
-```markdown
+```markdown{playground}
 # QUESTMARK-OPTIONS-HEADER
 
     {
@@ -162,7 +162,7 @@ Now add the `storm` state the option links to:
 
 Here is the complete document:
 
-```markdown
+```markdown{playground}
 # QUESTMARK-OPTIONS-HEADER
 
     {
@@ -200,6 +200,10 @@ Play it and notice the difference:
 1. On your first visit to the bar, "Ask about the storm" is **not** in the
    menu.
 2. Order a drink, return to the bar, and the option is **now** there.
+
+You can also press **▶ Play** on any complete document in this tutorial to open
+it in the [playground](../playground.md) and try it without installing
+anything.
 
 ```bash
 npm start -- --input tavern.md

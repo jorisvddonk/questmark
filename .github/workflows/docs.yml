@@ -6,6 +6,11 @@ on:
       - master
     paths:
       - "docs/**"
+      - "src/**"
+      - "examples/**"
+      - "webpack.config.cjs"
+      - "tsconfig.json"
+      - "tsconfig.webpack.json"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/docs.yml"

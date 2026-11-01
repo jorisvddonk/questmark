@@ -12,6 +12,9 @@ hero:
     - theme: alt
       text: Why Questmark?
       link: /explanation/why-questmark
+    - theme: alt
+      text: Playground
+      link: /playground
 
 features:
   - icon: 📝
@@ -48,6 +51,8 @@ splits documentation into four complementary modes of use:
 - **Trying to get something done?** The [how-to guides](how-to/play-a-document)
   show you how to play a document, compile one to bytecode, and embed Questmark
   in your own app.
+- **Want to see it running?** Open the [playground](playground) and write or
+  play a document right in your browser.
 - **Need a fact?** The [reference](reference/language) pages describe the
   language, the CLI, and the library API precisely and completely.
 - **Want to understand the design?** The [explanation](explanation/why-questmark)

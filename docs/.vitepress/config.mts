@@ -7,12 +7,40 @@ export default defineConfig({
   base: "/questmark/",
   cleanUrls: true,
   lastUpdated: true,
+  markdown: {
+    config(md) {
+      const fence = md.renderer.rules.fence;
+      if (!fence) {
+        return;
+      }
+
+      // Code fences marked with {playground} get a button that opens the block
+      // in the playground, pre-filled. The marker itself is not rendered.
+      md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+        const token = tokens[idx];
+        const info = token.info;
+        const hasPlaygroundAttribute = (token.attrs ?? []).some(([name]) => name === "playground");
+        const rendered = fence(tokens, idx, options, env, self);
+        if (!hasPlaygroundAttribute && !/\bplayground\b/.test(info)) {
+          return rendered;
+        }
+
+        return (
+          '<div class="qm-playable">' +
+          '<button type="button" class="qm-play-button" title="Open this document in the playground">▶ Play</button>' +
+          rendered +
+          "</div>"
+        );
+      };
+    },
+  },
   themeConfig: {
     nav: [
       { text: "Tutorials", link: "/tutorials/first-conversation" },
       { text: "How-to", link: "/how-to/play-a-document" },
       { text: "Reference", link: "/reference/language" },
       { text: "Explanation", link: "/explanation/why-questmark" },
+      { text: "Playground", link: "/playground" },
     ],
     sidebar: [
       {

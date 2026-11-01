@@ -1,10 +1,11 @@
 const path = require('path');
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+const MinimizerPlugin = require("minimizer-webpack-plugin");
 
 module.exports = {
     mode: "production",
     entry: './src/index.ts',
-    devtool: "inline-source-map",
+    devtool: false,
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist/browser'),
@@ -35,7 +36,10 @@ module.exports = {
         fallback: { fs: false }
     },
     optimization: {
-        minimize: false,
+        minimize: true,
+        // Tzo inspects `Function.prototype.name` at runtime, so minified
+        // function names would break the VM's brace handling.
+        minimizer: [new MinimizerPlugin({ minimizerOptions: { keep_fnames: true } })],
         mangleExports: false,
     },
     plugins: [
