@@ -214,6 +214,10 @@ npm start -- --input tavern.md
 You've used states, options, links, context, and a precondition. Those are the
 core of the language.
 
+- Continue with [Remember what the player did](context-and-state.md) to learn
+  counters, flags, and comparison logic.
+- Keep the [cheat sheet](../reference/cheatsheet.md) and the
+  [cookbook](../how-to/recipes.md) nearby while you write.
 - Read the [how-to guide on playing documents](../how-to/play-a-document.md)
   for more ways to run a document.
 - Read the [language reference](../reference/language.md) for the complete set

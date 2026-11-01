@@ -29,6 +29,9 @@ features:
   - icon: ⚙️
     title: Compiles to Tzo bytecode
     details: Documents compile to a portable Tzo VMState that can be stored, shipped, and interpreted in a game, a CLI, or a browser.
+  - icon: 🎮
+    title: Playable in the browser
+    details: Every complete document in the tutorials has a Play button. Edit and run it in the playground, with the real compiler and VM running locally.
 ---
 
 ## Documentation
@@ -45,22 +48,43 @@ splits documentation into four complementary modes of use:
 
 ## Quick orientation
 
-- **New to Questmark?** Start with the [tutorial](tutorials/first-conversation).
+- **New to Questmark?** Start with the [first tutorial](tutorials/first-conversation).
   It takes about ten minutes and gets you writing and playing your first
   conversation.
+- **Want the full tour?** The tutorial series continues with
+  [context and state](tutorials/context-and-state),
+  [choices with consequences](tutorials/choices-with-consequences),
+  [numbers and randomness](tutorials/numbers-strings-and-randomness),
+  [text output](tutorials/control-text-output), a
+  [branching dialogue](tutorials/branching-dialogue), and a
+  [text adventure](tutorials/text-adventure).
 - **Trying to get something done?** The [how-to guides](how-to/play-a-document)
-  show you how to play a document, compile one to bytecode, and embed Questmark
-  in your own app.
+  show you how to play, compile, debug, organize, and embed documents.
 - **Want to see it running?** Open the [playground](playground) and write or
   play a document right in your browser.
 - **Need a fact?** The [reference](reference/language) pages describe the
-  language, the CLI, and the library API precisely and completely.
+  language, the CLI, and the library API precisely and completely. Start with
+  the [cheat sheet](reference/cheatsheet) if you want a one-page summary.
+- **Looking for a pattern?** The [cookbook](how-to/recipes) collects
+  copy-paste solutions for counters, inventories, random tables, and other
+  common situations.
 - **Want to understand the design?** The [explanation](explanation/why-questmark)
-  pages cover why Questmark exists and how it works under the hood.
+  pages cover why Questmark exists, how it works, and the wider
+  [Questmark and Tzo ecosystem](explanation/ecosystem).
 
 ## Related projects
+
+Questmark is part of a small ecosystem of runtimes and tools. The full list is
+on the [ecosystem page](explanation/ecosystem); highlights:
 
 - [Tzo](https://github.com/jorisvddonk/tzo) — the stack-machine bytecode and VM
   that Questmark compiles to.
 - [questmark-webrenderer](https://github.com/jorisvddonk/questmark-webrenderer) —
   render and play Questmark documents in the browser.
+- [tzo-c](https://github.com/jorisvddonk/tzo-c) and
+  [tzo-rust](https://github.com/jorisvddonk/tzo-rust) — C and Rust
+  implementations of the Tzo VM.
+- [tzo-godot](https://github.com/jorisvddonk/tzo-godot) — a Godot extension
+  for Tzo and QuestVM.
+- [questmark-ide](https://github.com/jorisvddonk/questmark-ide) — a
+  work-in-progress IDE for Questmark and Questmark-Yarn.

@@ -2,7 +2,15 @@
 
 The library entry point (`src/index.ts`, built to `dist/node/`) exports the
 compiler and the interpreter. All of the API below is available from the
-package entry point (`import ... from "questmark"` / `require("questmark")`).
+package entry point (`import ... from "questmark"` / `require("questmark")`):
+
+```js
+import { parseMarkdown, QuestVM, NoLinkBehaviour } from "questmark";
+```
+
+Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`) are
+exported as TypeScript types. The Tzo `Tokenizer` is not re-exported; import it
+from `tzo` if you need to tokenize code yourself.
 
 ## `parseMarkdown(fileContents: string)`
 
@@ -10,12 +18,22 @@ Compiles a Questmark document into a Tzo VM state.
 
 **Returns** `{ parsedMDFile, qvmState }`
 
-- `parsedMDFile` — the parsed document as a unist tree, with position
-  information removed.
-- `qvmState` — a `TzoVMState` (see below) ready to load into a `QuestVM`.
+- `parsedMDFile` — the parsed document as a unist tree with position
+  information removed. Useful for tooling, linting, or custom directives.
+- `qvmState` — a `QuestMarkVMState` (a `TzoVMState` plus the parsed document),
+  ready to load into a `QuestVM` or serialize to JSON.
 
 **Throws** on malformed option headers (for example an unknown
-`no_link_behaviour`) or Tzo tokenizer errors.
+`no_link_behaviour`), invalid JSON in the header, or Tzo tokenizer errors.
+Unknown opcodes are *not* caught here; they fail when the VM loads the state.
+
+```js
+import { parseMarkdown } from "questmark";
+
+const { parsedMDFile, qvmState } = parseMarkdown(markdown);
+console.log(qvmState.labelMap);   // state name -> program counter
+console.log(qvmState.programList.length);
+```
 
 ## `QuestVM`
 
@@ -34,11 +52,35 @@ new QuestVM(
 ```
 
 - `emitFunction` — called by the `emit` opcode for each piece of text output.
+  It may be called several times per state; concatenate the calls.
 - `getResponseFunction` — called by the `getResponse` opcode whenever the
   document asks the player to choose. Receives the currently available options
-  and must return a `Promise` resolving to the chosen option's `id`.
+  (`{ title, id }`) and must return a `Promise` resolving to the chosen option's
+  `id`. Option ids are positional within the current menu.
 - `additionalFunctions` — a map of extra Tzo opcode names to functions, merged
-  into the function table.
+  into the function table. Each function receives `(stack, context, vm)`.
+  Names beginning with `_` are silently ignored when not registered.
+
+### Lifecycle
+
+```js
+const vm = new QuestVM(emit, choose, hooks);
+
+vm.eventBus.on("error", (err) => {
+  console.error(err);
+});
+
+vm.loadVMState(qvmState); // prepare the program
+vm.run();                 // run until exit or a choice
+```
+
+- `run()` executes until the VM exits or suspends. It does not return a value.
+- When a choice is made, `QuestVM` resumes the VM internally; do not call
+  `run()` again for the normal choice flow.
+- `vm.exit` is `true` after the program ends.
+- `vm.pause` is `true` while the VM is suspended.
+- To replay, create a new `QuestVM` and load a freshly compiled state. Loading
+  an already-played state continues from its mutated context.
 
 ### Events
 
@@ -47,8 +89,12 @@ new QuestVM(
 | Event | Payload | When |
 | --- | --- | --- |
 | `emit` | `string \| number` | Every text emission. |
-| `response` | `{ response, pc }` | Every option registration. |
-| `error` | `Error` | Runtime errors in the response flow. |
+| `response` | `{ response: string, pc: number }` | Every option registration while building a menu. |
+| `error` | `Error` | Runtime errors raised while resuming after a choice. |
+
+Errors during the initial `run()` are thrown synchronously; errors during a
+resumed run are emitted on `eventBus` and end the VM. Handle both. See
+[How to embed Questmark](../how-to/use-the-library.md#handling-runtime-errors).
 
 ### Inherited methods (from Tzo `VM`)
 
@@ -59,11 +105,14 @@ new QuestVM(
 | `quit()` | Mark the VM as exited. |
 | `suspend()` | Pause execution (the `pause` opcode / `getResponse`). |
 | `tick()` | Execute a single instruction. |
+| `invoke(instructions)` | Run a list of instruction functions. |
+| `setProgramCounter(pc)` | Jump to a program position. |
 
 ### Properties
 
 `stack`, `context`, `programList`, `labelMap`, `programCounter`, `exit`,
-`pause` — the interpreter state.
+`pause` — the interpreter state. They are mutable; treat them as read-only
+unless you are implementing a debugger or a custom opcode.
 
 ## `Choice`
 
@@ -86,16 +135,19 @@ enum NoLinkBehaviour {
 }
 ```
 
-Behaviour when a chosen option has no link and no effect. Exported for host
-applications; documents configure this via the header flag
-`options.no_link_behaviour`.
+Behaviour when a chosen option has no link. Exported for host applications;
+documents configure this via the header flag `options.no_link_behaviour`
+(`"exit"` or `"loopback_to_options"`).
 
-## `TzoVMState`
+## `QuestMarkVMState`
 
 The compiled representation produced by `parseMarkdown` and consumed by
 `loadVMState`:
 
 ```ts
+interface QuestMarkVMState extends TzoVMState {
+  // unist nodes for the parsed document, with positions removed
+}
 interface TzoVMState {
   stack: any[];
   context: { [key: string]: string | number };
@@ -107,29 +159,55 @@ interface TzoVMState {
 }
 ```
 
-## `Tokenizer`
+The state is plain JSON and survives a round-trip through
+`JSON.stringify`/`JSON.parse`.
 
-Re-exported from Tzo. Parses a string of Tzo source code into an array of
-instructions:
+## Browser bundle
 
-```ts
-new Tokenizer().parse("1 2 +") // -> [push-number 1, push-number 2, invoke +]
+The webpack build produces `dist/browser/bundle.js`, which exposes a
+`window.Questmark` global with the same `parseMarkdown`, `QuestVM`, and
+`NoLinkBehaviour` exports. It is built from the same source as the Node package.
+
+```html
+<script src="questmark/dist/browser/bundle.js"></script>
+<script>
+  const { parseMarkdown, QuestVM } = window.Questmark;
+</script>
 ```
+
+The bundle touches `document` at import time (through the Markdown parser), so
+load it client-side only. If you minify it, preserve function names: Tzo
+inspects `Function.prototype.name` for brace handling.
+
+This site's [playground](../playground.md) is a complete browser host built on
+this bundle.
 
 ## Full usage example
 
 ```js
 const { parseMarkdown, QuestVM } = require("questmark");
-const { qvmState } = parseMarkdown(md);
+
+const { qvmState } = parseMarkdown(markdown);
+const emitted = [];
 
 const vm = new QuestVM(
-  (text) => console.log(text),
+  (text) => emitted.push(String(text)),
   async (choices) => {
     const index = await pickFrom(choices);
     return choices[index].id;
   },
   {}
 );
+
+vm.eventBus.on("error", console.error);
 vm.loadVMState(qvmState);
 vm.run();
+
+console.log(emitted.join(""));
 ```
+
+## Related reading
+
+- [Language reference](language.md) — what the compiler accepts.
+- [CLI reference](cli.md) — the command-line wrapper.
+- [How to embed Questmark](../how-to/use-the-library.md) — a longer guide.

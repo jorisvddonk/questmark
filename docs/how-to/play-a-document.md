@@ -2,6 +2,17 @@
 
 This guide shows you how to run a Questmark document interactively.
 
+## In your browser
+
+The fastest way to try a document is the [playground](../playground.md). It
+runs the real compiler and interpreter in the page: paste a document, press
+**Run**, and choose options to play. Nothing is uploaded, and the document is
+not saved.
+
+Any complete document in the [tutorials](../tutorials/first-conversation.md)
+or in the [reference](../reference/language.md) has a **▶ Play** button on the
+code block. The button opens the playground with that document already loaded.
+
 ## From the project directory
 
 After cloning the repository and running `npm install`, play any local
@@ -42,6 +53,8 @@ npx questmark --input https://ghcdn.rawgit.org/jorisvddonk/questmark/master/exam
 - Options can be hidden by preconditions, or appear only once when marked
   `@once` — if an option is missing from the menu, that's the story telling
   you it isn't available.
+- An `exit` state ends the session. In the playground, the status changes to
+  **Ended**; in the CLI, the process returns to the shell.
 
 ## Troubleshooting
 
@@ -55,3 +68,17 @@ npx questmark --input https://ghcdn.rawgit.org/jorisvddonk/questmark/master/exam
 - **The interpreter quits immediately** — the document uses the `exit`
   `no_link_behaviour`, or the state you entered runs an `exit` instruction.
   This is often intended.
+- **An option is missing, or the text after an option never appears** — check
+  the option's precondition and its post-option text. For a deeper walkthrough,
+  see [How to debug a document](debug-a-document.md).
+- **The document throws `getContext` errors** — initialize every key you read
+  in `initial-context`, or test it with `hasContext` first.
+- **A state's text or options disappear** — a `##` heading inside the state
+  ended it. Use only `#` headings for states.
+
+## See also
+
+- [The playground](../playground.md) — play a document in the browser.
+- [Compile to bytecode](compile-to-bytecode.md) — ship a document as JSON.
+- [Embed Questmark in an application](use-the-library.md) — put a `QuestVM` in
+  your own program.

@@ -64,3 +64,12 @@ questmark --input https://example.com/document.md
   `parseMarkdown` before interpretation.
 - Any other extension is an error.
 - Inputs beginning with `http://` or `https://` are fetched before processing.
+
+## See also
+
+- [How to play a document](../how-to/play-a-document.md) — a walkthrough of a
+  play session and its troubleshooting.
+- [How to compile to bytecode](../how-to/compile-to-bytecode.md) — the
+  `--output` and `--no-run` flow.
+- [The playground](../playground.md) — the same compiler and interpreter,
+  running in a browser.

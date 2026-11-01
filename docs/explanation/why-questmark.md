@@ -55,9 +55,11 @@ control, where they can be reviewed, merged, and diffed like any other code.
 
 Questmark is a proof of concept implemented in TypeScript. The spec is still
 informal and the feature set is still settling. The repository includes
-compiler, interpreter, CLI, and a test suite; the companion
+compiler, interpreter, CLI, and a test suite; this site's
+[playground](../playground.md) plays documents in the browser, and the companion
 [questmark-webrenderer](https://github.com/jorisvddonk/questmark-webrenderer)
-renders and plays documents in the browser.
+provides an inline renderer. Several independent runtimes exist; see the
+[ecosystem](ecosystem.md).
 
 Open questions the project is still working through:
 
@@ -70,3 +72,5 @@ Open questions the project is still working through:
 
 - [How Questmark works](how-questmark-works.md) — the pipeline from Markdown to
   bytecode to a running conversation.
+- [The Questmark and Tzo ecosystem](ecosystem.md) — runtimes, ports, and tools.
+- [Try the playground](../playground.md) — see the ideas running.

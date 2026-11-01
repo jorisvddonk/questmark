@@ -47,7 +47,14 @@ export default defineConfig({
         text: "Tutorials",
         collapsed: false,
         items: [
+          { text: "Playground", link: "/playground" },
           { text: "Your first conversation", link: "/tutorials/first-conversation" },
+          { text: "Context and state", link: "/tutorials/context-and-state" },
+          { text: "Choices with consequences", link: "/tutorials/choices-with-consequences" },
+          { text: "Numbers, strings, and randomness", link: "/tutorials/numbers-strings-and-randomness" },
+          { text: "Control how text is emitted", link: "/tutorials/control-text-output" },
+          { text: "Write a branching dialogue", link: "/tutorials/branching-dialogue" },
+          { text: "Build a text adventure", link: "/tutorials/text-adventure" },
         ],
       },
       {
@@ -57,12 +64,16 @@ export default defineConfig({
           { text: "Play a document", link: "/how-to/play-a-document" },
           { text: "Compile to bytecode", link: "/how-to/compile-to-bytecode" },
           { text: "Embed in an application", link: "/how-to/use-the-library" },
+          { text: "Debug a document", link: "/how-to/debug-a-document" },
+          { text: "Organize a larger document", link: "/how-to/organize-a-document" },
+          { text: "Cookbook: common patterns", link: "/how-to/recipes" },
         ],
       },
       {
         text: "Reference",
         collapsed: false,
         items: [
+          { text: "Cheat sheet", link: "/reference/cheatsheet" },
           { text: "Language reference", link: "/reference/language" },
           { text: "CLI reference", link: "/reference/cli" },
           { text: "API reference", link: "/reference/api" },
@@ -74,6 +85,7 @@ export default defineConfig({
         items: [
           { text: "Why Questmark?", link: "/explanation/why-questmark" },
           { text: "How Questmark works", link: "/explanation/how-questmark-works" },
+          { text: "Questmark and Tzo ecosystem", link: "/explanation/ecosystem" },
         ],
       },
     ],

@@ -119,5 +119,7 @@ needs to know *why* an option is hidden; the compiled bytecode handles it.
 
 - [Why Questmark?](why-questmark.md) — the problem this design is answering.
 - [Language reference](../reference/language.md) — what you can write.
+- [The Questmark and Tzo ecosystem](ecosystem.md) — runtimes and tools built on
+  this pipeline.
 - [Tzo](https://github.com/jorisvddonk/tzo) — the bytecode and VM Questmark
   is built on.
