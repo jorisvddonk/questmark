@@ -201,9 +201,9 @@ Play it and notice the difference:
    menu.
 2. Order a drink, return to the bar, and the option is **now** there.
 
-You can also press **▶ Play** on any complete document in this tutorial to open
-it in the [playground](../playground.md) and try it without installing
-anything.
+You can also switch any complete document in this tutorial to its **Play** tab
+to play it right here. To edit it instead, open the
+[playground](../playground.md).
 
 ```bash
 npm start -- --input tavern.md

@@ -31,7 +31,7 @@ features:
     details: Documents compile to a portable Tzo VMState that can be stored, shipped, and interpreted in a game, a CLI, or a browser.
   - icon: 🎮
     title: Playable in the browser
-    details: Every complete document in the tutorials has a Play button. Edit and run it in the playground, with the real compiler and VM running locally.
+    details: Every complete document in the tutorials has Code and Play tabs. Play it inline, or open the standalone playground to edit and run your own.
 ---
 
 ## Documentation

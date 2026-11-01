@@ -14,8 +14,9 @@ export default defineConfig({
         return;
       }
 
-      // Code fences marked with {playground} get a button that opens the block
-      // in the playground, pre-filled. The marker itself is not rendered.
+      // Code fences marked with {playground} get two tabs: the highlighted
+      // code, and an inline player that runs that code. The marker itself is
+      // not rendered.
       md.renderer.rules.fence = (tokens, idx, options, env, self) => {
         const token = tokens[idx];
         const info = token.info;
@@ -25,12 +26,7 @@ export default defineConfig({
           return rendered;
         }
 
-        return (
-          '<div class="qm-playable">' +
-          '<button type="button" class="qm-play-button" title="Open this document in the playground">▶ Play</button>' +
-          rendered +
-          "</div>"
-        );
+        return `<PlayableCode>${rendered}</PlayableCode>`;
       };
     },
   },

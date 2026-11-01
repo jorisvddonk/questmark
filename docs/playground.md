@@ -9,6 +9,9 @@ Write a Questmark document on the left and press **Run** to play it on the
 right. Everything happens in your browser — the compiler and the interpreter
 run locally, and nothing you type is sent anywhere.
 
+This page is the editable playground. If you only want to play an example from
+the documentation, use the **Play** tab on that code block instead.
+
 <Playground />
 
 ## Things to try

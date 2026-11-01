@@ -14,31 +14,12 @@ export interface QuestmarkRuntime {
   };
 }
 
-export const SHARED_DOCUMENT_KEY = "questmark:playground:document";
-
 let runtimePromise: Promise<QuestmarkRuntime> | null = null;
-
-/**
- * Hand a document to the playground page across a client-side navigation.
- * sessionStorage is used instead of the URL so long documents do not end up in
- * the address bar or in shared links.
- */
-export function openInPlayground(document: string) {
-  try {
-    sessionStorage.setItem(SHARED_DOCUMENT_KEY, document);
-  } catch {
-    // Storage can be unavailable (private mode, disabled cookies). The
-    // playground then simply opens with its default document.
-  }
-
-  const base = import.meta.env.BASE_URL || "/";
-  window.location.assign(`${base}playground`);
-}
 
 /**
  * The browser bundle touches `document` while it initializes, so it cannot be
  * imported (or server-side rendered) directly. Load it with a script tag the
- * first time the playground actually needs it.
+ * first time a player actually needs it.
  */
 export function loadQuestmark(): Promise<QuestmarkRuntime> {
   const existing = (window as unknown as { Questmark?: QuestmarkRuntime }).Questmark;

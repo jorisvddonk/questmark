@@ -192,39 +192,104 @@
   font-style: italic;
 }
 
-/* "Play" button added to code fences marked with {playground}. */
-.qm-playable {
-  position: relative;
+/* Code/Play tabs on fences marked with {playground}. */
+.qm-code {
+  margin: 20px 0;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
 }
 
-.qm-play-button {
-  position: absolute;
-  top: 8px;
-  right: 3.4rem;
-  z-index: 2;
-  padding: 4px 10px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 6px;
+.qm-code__tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg-soft);
+}
+
+.qm-tab {
+  appearance: none;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
   color: var(--vp-c-text-2);
   font-size: 12px;
   font-weight: 600;
+  line-height: 1.4;
   cursor: pointer;
-  opacity: 0;
   transition:
-    opacity 0.2s,
     color 0.2s,
+    background-color 0.2s,
     border-color 0.2s;
 }
 
-.qm-playable:hover .qm-play-button,
-.qm-play-button:focus-visible {
-  opacity: 1;
+.qm-tab:hover {
+  color: var(--vp-c-text-1);
 }
 
-.qm-play-button:hover {
+.qm-tab--active {
+  border-color: var(--vp-c-divider);
+  background: var(--vp-c-bg);
+  color: var(--vp-c-brand-1);
+}
+
+.qm-code__status {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
+.qm-code__status[data-status="waiting"] {
+  color: var(--vp-c-brand-1);
+}
+
+.qm-code__status[data-status="error"] {
+  color: var(--vp-c-danger-1);
+}
+
+.qm-code__restart {
+  padding: 4px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.qm-code__restart:hover {
   border-color: var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
+}
+
+.qm-code__panel {
+  min-width: 0;
+  background: var(--vp-c-bg);
+}
+
+/* Let the VitePress code block fill our panel instead of drawing its own box. */
+.qm-code__code > .language-markdown {
+  margin: 0;
+  border-radius: 0;
+}
+
+.qm-code__play {
+  max-height: 60vh;
+  padding: 14px 18px;
+  overflow: auto;
+}
+
+.qm-player {
+  min-height: 120px;
+}
+
+.qm-code__play .qm-empty {
+  margin: 0;
 }
 
 @media (max-width: 760px) {
@@ -236,5 +301,9 @@
   .qm-story {
     min-height: 320px;
     max-height: 50vh;
+  }
+
+  .qm-code__play {
+    max-height: 70vh;
   }
 }

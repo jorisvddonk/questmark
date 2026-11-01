@@ -10,8 +10,9 @@ runs the real compiler and interpreter in the page: paste a document, press
 not saved.
 
 Any complete document in the [tutorials](../tutorials/first-conversation.md)
-or in the [reference](../reference/language.md) has a **▶ Play** button on the
-code block. The button opens the playground with that document already loaded.
+or in the [reference](../reference/language.md) has **Code** and **Play** tabs.
+Switch to **Play** to run the document right there, without leaving the page.
+To edit the document instead, use the [playground](../playground.md).
 
 ## From the project directory
 

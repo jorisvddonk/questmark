@@ -20,8 +20,8 @@ rendered as a [hosted website](https://jorisvddonk.github.io/questmark/):
 - **[Tutorials](docs/tutorials/)** — start here if you're new. Write and play
   your first conversation in about ten minutes, then continue through context,
   choices, randomness, text output, a branching dialogue, and a full text
-  adventure. Every complete document has a **Play** button when the docs are
-  served as a website.
+  adventure. Every complete document has **Code** and **Play** tabs when the
+  docs are served as a website.
 - **[How-to guides](docs/how-to/)** — play a document, compile it to bytecode,
   debug it, organize a larger work, and embed Questmark in your own
   application.
