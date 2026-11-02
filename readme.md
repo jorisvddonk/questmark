@@ -28,7 +28,8 @@ rendered as a [hosted website](https://jorisvddonk.github.io/questmark/):
 - **[Reference](docs/reference/)** — the language, the CLI, and the API,
   described precisely and completely.
 - **[Explanation](docs/explanation/)** — why Questmark exists, how it works
-  under the hood, the wider questmark/Tzo ecosystem, and an
+  under the hood, the design principles and mental model, the trust model, how
+  it is tested, open design problems, the wider questmark/Tzo ecosystem, and an
   [FAQ/comparison](docs/explanation/faq.md).
 - **[Integrator guides](docs/how-to/implement-a-runtime.md)** — porting and
   conformance, save/load, sandboxing untrusted documents, and CI validation.

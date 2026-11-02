@@ -81,5 +81,9 @@ runtime, editor, or analyzer is a welcome addition.
 
 - [Why Questmark?](why-questmark.md) — the design problem.
 - [How Questmark works](how-questmark-works.md) — the compilation pipeline.
+- [How Questmark is tested](how-questmark-is-tested.md) — the conformance
+  corpus ports are measured against.
+- [How to implement a runtime](../how-to/implement-a-runtime.md) — the VMState
+  contract.
 - [Compile to bytecode](../how-to/compile-to-bytecode.md) — produce a
   `VMState` for another runtime.

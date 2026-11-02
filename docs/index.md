@@ -75,8 +75,12 @@ splits documentation into four complementary modes of use:
   side, and [document tree and VMState](reference/document-tree) describes the
   data formats.
 - **Want to understand the design?** The [explanation](explanation/why-questmark)
-  pages cover why Questmark exists, how it works, and the wider
-  [Questmark and Tzo ecosystem](explanation/ecosystem).
+  pages cover why Questmark exists, its [design principles](explanation/design-principles),
+  the [mental model](explanation/mental-model), the
+  [stack machine](explanation/why-a-stack-machine), the
+  [text contract](explanation/text-contract), the
+  [trust model](explanation/trust-model), and
+  [open design problems](explanation/open-design-problems).
 
 ## Related projects
 

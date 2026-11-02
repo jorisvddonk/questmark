@@ -118,6 +118,10 @@ needs to know *why* an option is hidden; the compiled bytecode handles it.
 ## See also
 
 - [Why Questmark?](why-questmark.md) — the problem this design is answering.
+- [Design principles](design-principles.md) — why the pipeline is shaped this
+  way.
+- [Why a stack machine?](why-a-stack-machine.md) — the Tzo execution model.
+- [The text contract](text-contract.md) — what the VM hands to the host.
 - [Language reference](../reference/language.md) — what you can write.
 - [The Questmark and Tzo ecosystem](ecosystem.md) — runtimes and tools built on
   this pipeline.

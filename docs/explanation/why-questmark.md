@@ -68,9 +68,17 @@ Open questions the project is still working through:
 - How can a document be translated to another language while keeping its
   scripting logic intact and easy to modify?
 
+[Open design problems](open-design-problems.md) explains why these are hard,
+what options exist, and where the project currently stands. It also covers
+includes/modules, exact save/restore, and versioning.
+
 ## See also
 
 - [How Questmark works](how-questmark-works.md) — the pipeline from Markdown to
   bytecode to a running conversation.
+- [Design principles](design-principles.md) — the trade-offs behind the
+  language.
+- [The Questmark mental model](mental-model.md) — states, options, text, and
+  context.
 - [The Questmark and Tzo ecosystem](ecosystem.md) — runtimes, ports, and tools.
 - [Try the playground](../playground.md) — see the ideas running.

@@ -88,6 +88,13 @@ export default defineConfig({
         items: [
           { text: "Why Questmark?", link: "/explanation/why-questmark" },
           { text: "How Questmark works", link: "/explanation/how-questmark-works" },
+          { text: "Design principles", link: "/explanation/design-principles" },
+          { text: "The Questmark mental model", link: "/explanation/mental-model" },
+          { text: "Why a stack machine?", link: "/explanation/why-a-stack-machine" },
+          { text: "The text contract", link: "/explanation/text-contract" },
+          { text: "The trust model", link: "/explanation/trust-model" },
+          { text: "How Questmark is tested", link: "/explanation/how-questmark-is-tested" },
+          { text: "Open design problems", link: "/explanation/open-design-problems" },
           { text: "Questmark and Tzo ecosystem", link: "/explanation/ecosystem" },
           { text: "FAQ and comparisons", link: "/explanation/faq" },
         ],

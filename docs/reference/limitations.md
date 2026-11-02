@@ -121,14 +121,16 @@ documentation.
 
 ## Open design questions
 
-These are known gaps rather than incidental bugs:
+These are known gaps rather than incidental bugs. They are explained, with the
+trade-offs and possible directions, in
+[open design problems](../explanation/open-design-problems.md):
 
-- How should inline HTML be treated?
-- Can the compiler be extended with custom directives and macros?
-- Can documents be translated while keeping scripting logic intact?
-- Should there be an include/module mechanism?
-
-See [Why Questmark?](../explanation/why-questmark.md) for the context.
+- inline HTML,
+- custom directives and macros,
+- localization,
+- includes and modules,
+- exact save/restore,
+- versioning and compatibility.
 
 ## See also
 

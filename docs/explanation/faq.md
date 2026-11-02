@@ -63,7 +63,8 @@ embedded. ChoiceScript is more complete as an authoring-to-publication pipeline.
 
 No. Questmark emits text, not markup. Inline HTML tags are dropped and their
 text survives; images are dropped entirely. Styling and layout are the host's
-job.
+job. [Open design problems](open-design-problems.md#inline-html) explains why
+this is hard to change.
 
 ## Can I play audio or show images?
 
@@ -79,21 +80,25 @@ There is no built-in localization. Text is compiled into the bytecode, so a
 translation means compiling a translated document. Keeping scripting logic in
 small backticked snippets and prose in plain paragraphs makes the text easier
 to extract and replace. The project lists localization as an open question in
-[Why Questmark?](why-questmark.md).
+[Why Questmark?](why-questmark.md), and
+[open design problems](open-design-problems.md#localization) covers the
+trade-offs.
 
 ## Can I add my own directives or syntax?
 
 Only `@once` exists as a directive. Custom Tzo opcodes can be added by the host
 through `additionalFunctions`; use an underscore prefix for hooks that should
 be no-ops when absent. Adding new Markdown directives means changing the
-compiler and is an explicit open question, not a plugin API.
+compiler and is an explicit open question, not a plugin API. See
+[open design problems](open-design-problems.md#custom-directives-and-macros).
 
 ## Can I split a document into files?
 
 No. One document is one compilation unit with one options header. For large
 works, split into separate episodes/quests with their own headers, or
 concatenate scene files with a script before compiling. See
-[organize a larger document](../how-to/organize-a-document.md).
+[organize a larger document](../how-to/organize-a-document.md) and
+[open design problems](open-design-problems.md#includes-and-modules).
 
 ## Can I save progress?
 
