@@ -310,7 +310,10 @@ You step out into the rain.
 
 The playground has no `_recordDrink` function, so nothing happens. A game
 embedding Questmark can register one and trigger an animation, a sound, or an
-achievement. See [embed Questmark in your application](../how-to/use-the-library.md).
+achievement. Hook arguments should travel through the context, not the stack:
+hooks leave the stack exactly as they found it, so the document behaves the
+same whether or not the host registered the hook. See
+[embed Questmark in your application](../how-to/use-the-library.md#custom-opcodes).
 
 ## 7. A complete random scene
 

@@ -109,7 +109,7 @@ Another state.
 | `randInt` | `6 randInt 1 +` → 1..6 |
 | `charCode` | `65 charCode` → `A` |
 | `dup` / `pop` | stack manipulation |
-| `_name` | host hook, no-op if unregistered |
+| `_name` | host hook; no-op if unregistered; must leave the stack unchanged |
 
 ## Text
 
@@ -131,3 +131,5 @@ Another state.
 6. Use `@once` for one-off topics and actions.
 7. Keep prose in state text and state changes in effects.
 8. Run the document; the compiler is the first reviewer.
+9. Host hooks (`_name`) leave the stack unchanged; pass data through the
+   context.

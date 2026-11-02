@@ -463,6 +463,36 @@ host has not registered them, which makes them safe markers and hooks:
 * Open the door `_playDoorSound` The door creaks open.
 ```
 
+Hooks are **stack-neutral by contract**: a hook must leave the stack exactly as
+it found it. That is what makes the same document runnable with and without the
+hook. An unregistered `_` opcode is a no-op, so a hook that popped an argument
+would leave the interpreter in a different state in a host that did not
+register it.
+
+Pass information through the context instead of the stack:
+
+```markdown
+* Pick up the lamp `1 "lamp" setContext` `"lamp" "pending_item" setContext _giveItem` You take the lamp.
+```
+
+```js
+_giveItem: (stack, context) => {
+  inventory.add(context.pending_item);
+  delete context.pending_item;
+}
+```
+
+The document sets the lamp flag itself; the hook only reads `pending_item` and
+notifies the host. That way the document still works when the hook is missing.
+
+The hook reads the context and returns without touching the stack. If you need
+a real custom opcode that consumes stack arguments, do **not** use the `_`
+prefix, and register it in every VM that plays the document:
+
+```markdown
+* Deal damage `10 damage` The blade bites.
+```
+
 A host can register `_playDoorSound` in `additionalFunctions` to trigger sound,
 animation, or telemetry. See [embed Questmark](../how-to/use-the-library.md).
 

@@ -1,6 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { compile, run, normalize } = require("./helpers.cjs");
+const { parseMarkdown } = require("../dist/node/parseMarkdown.js");
+const { QuestVM } = require("../dist/node/QuestVM.js");
 
 const NAVIGATION = `
 # QUESTMARK-OPTIONS-HEADER
@@ -190,4 +192,62 @@ test("no_link_behaviour exit ends the quest when an option has no link or effect
 test("exits when a state runs an exit opcode", async () => {
   const { vm } = await run(CONTEXT_TEXT, ["Exit"]);
   assert.equal(vm.exit, true);
+});
+
+const HOST_HOOK = `
+# QUESTMARK-OPTIONS-HEADER
+
+    {
+      "questmark-spec": "1.0",
+      "initial-state": "start"
+    }
+
+# start
+
+At the shop.
+* Take the lamp \`1 "lamp" setContext\` \`"lamp" "pending_item" setContext _giveItem\`
+* [Leave](#end)
+
+# end
+
+You leave.
+\`exit\`
+`;
+
+function playWithHooks(hooks) {
+  const { qvmState } = parseMarkdown(HOST_HOOK);
+  const emitted = [];
+  return new Promise((resolve) => {
+    let pickedOnce = false;
+    const vm = new QuestVM(
+      (text) => emitted.push(String(text)),
+      async (choices) => {
+        if (!pickedOnce) {
+          pickedOnce = true;
+          return choices.find((choice) => choice.title === "Take the lamp").id;
+        }
+        return choices.find((choice) => choice.title === "Leave").id;
+      },
+      hooks
+    );
+
+    vm.loadVMState(qvmState);
+    vm.run();
+    setTimeout(() => resolve({ emitted: emitted.join(""), stack: vm.stack.slice() }), 50);
+  });
+}
+
+test("underscore hooks are stack-neutral and read arguments from the context", async () => {
+  let seenItem = null;
+  const withHook = await playWithHooks({
+    _giveItem: (stack, context) => {
+      seenItem = context.pending_item;
+      delete context.pending_item;
+    },
+  });
+  const withoutHook = await playWithHooks({});
+
+  assert.equal(seenItem, "lamp");
+  assert.equal(withHook.emitted, withoutHook.emitted);
+  assert.deepEqual(withHook.stack, withoutHook.stack);
 });

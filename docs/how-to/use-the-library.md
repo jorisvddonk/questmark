@@ -57,9 +57,12 @@ call `run()` again for a normal choice flow.
   preconditions did not run.
 
 - **additionalFunctions** — a map of extra opcode names to functions. A
-  function receives `(stack, context, vm)` and may push a result. Opcode names
-  beginning with `_` are ignored by the VM when not registered, so you can use
-  underscore-prefixed calls in documents as hooks for your own logic.
+  function receives `(stack, context, vm)`. Opcode names beginning with `_` are
+  ignored by the VM when not registered, so you can use underscore-prefixed
+  calls in documents as hooks for your own logic. Hooks must leave the stack
+  unchanged; pass arguments through the context instead (see below). Opcodes
+  without the underscore prefix may use the stack, but then every VM that plays
+  the document must register them.
 
 ## Detecting the end
 
@@ -158,10 +161,10 @@ const vm = new QuestVM(emit, choose, {
   _playDoorSound: (stack, context, vm) => {
     audio.play("door-open");
   },
-  // A hook that reads an argument from the document:
-  _giveItem: (stack) => {
-    const item = stack.pop();
-    inventory.add(item);
+  // Hooks read their arguments from the context, never from the stack:
+  _giveItem: (stack, context) => {
+    inventory.add(context.pending_item);
+    delete context.pending_item;
   },
 });
 ```
@@ -169,12 +172,16 @@ const vm = new QuestVM(emit, choose, {
 Document side:
 
 ```markdown
-* Pick up the lamp `"lamp" _giveItem` You take the lamp.
+* Pick up the lamp `1 "lamp" setContext` `"lamp" "pending_item" setContext _giveItem` You take the lamp.
 ```
 
-The argument is pushed before the opcode, so the hook pops it. Unregistered `_`
-hooks are silent no-ops, which means the same document plays in the playground
-and in your game.
+The context carries the argument, and the hook returns without touching the
+stack. The document sets its own state (`lamp`) too; the hook is a notification
+to the host, not the source of truth for the game state. That matters because
+unregistered `_` hooks are silent no-ops: if a hook consumed a stack value, the
+document would leave a different stack in the playground than in your game. If
+you need an opcode that genuinely manipulates the stack, omit the underscore
+prefix and register it in every VM that plays the document.
 
 ## Handling runtime errors
 

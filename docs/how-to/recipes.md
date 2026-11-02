@@ -217,11 +217,13 @@ option if you need it to stay.
 
 ```markdown
 * Open the door `_playDoorSound` The door creaks open.
-* Pick up the lamp `"lamp" _giveItem` You take the lamp.
+* Pick up the lamp `1 "lamp" setContext` `"lamp" "pending_item" setContext _giveItem` You take the lamp.
 ```
 
 Register `_playDoorSound` / `_giveItem` in `additionalFunctions`; unregistered
 hooks are silent no-ops, so the document still plays in the playground.
+Hooks must leave the stack unchanged — read arguments from the context
+(`context.pending_item` above), not by popping the stack.
 See [embed Questmark](use-the-library.md#custom-opcodes).
 
 ## See also

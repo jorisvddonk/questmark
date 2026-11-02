@@ -59,7 +59,10 @@ new QuestVM(
   `id`. Option ids are positional within the current menu.
 - `additionalFunctions` — a map of extra Tzo opcode names to functions, merged
   into the function table. Each function receives `(stack, context, vm)`.
-  Names beginning with `_` are silently ignored when not registered.
+  Names beginning with `_` are silently ignored when not registered. Hooks
+  (underscore-prefixed opcodes) must leave the stack unchanged; pass arguments
+  through the context. Opcodes without the prefix may use the stack, but then
+  every VM that plays the document must register them.
 
 ### Lifecycle
 
