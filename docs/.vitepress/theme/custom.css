@@ -192,6 +192,120 @@
   font-style: italic;
 }
 
+/* Collapsible stack/context inspector shared by the player and playground. */
+.qm-inspector {
+  border-top: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+
+.qm-inspector__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qm-inspector__toggle:hover {
+  color: var(--vp-c-text-1);
+}
+
+.qm-inspector__chevron {
+  width: 10px;
+}
+
+.qm-inspector__summary {
+  margin-left: auto;
+  font-weight: 400;
+  color: var(--vp-c-text-3);
+}
+
+.qm-inspector__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.qm-inspector__section h4 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-2);
+}
+
+.qm-inspector__json,
+.qm-inspector__table-wrap {
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: var(--vp-c-bg);
+}
+
+.qm-inspector__json {
+  padding: 8px 10px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.qm-inspector__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.qm-inspector__table th,
+.qm-inspector__table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--vp-c-divider);
+  text-align: left;
+  vertical-align: top;
+}
+
+.qm-inspector__table tr:last-child th,
+.qm-inspector__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.qm-inspector__table code {
+  font-size: 12px;
+}
+
+.qm-inspector__internal {
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--vp-c-default-soft);
+  color: var(--vp-c-text-3);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.qm-inspector__empty {
+  margin: 0;
+  color: var(--vp-c-text-3);
+  font-size: 12px;
+  font-style: italic;
+}
+
+@media (max-width: 760px) {
+  .qm-inspector__body {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Code/Play tabs on fences marked with {playground}. */
 .qm-code {
   margin: 20px 0;

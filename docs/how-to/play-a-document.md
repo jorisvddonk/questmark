@@ -12,7 +12,9 @@ not saved.
 Any complete document in the [tutorials](../tutorials/first-conversation.md)
 or in the [reference](../reference/language.md) has **Code** and **Play** tabs.
 Switch to **Play** to run the document right there, without leaving the page.
-To edit the document instead, use the [playground](../playground.md).
+Open **Inspect state** under the story to see the VM stack and context after
+each turn. To edit the document instead, use the
+[playground](../playground.md).
 
 ## From the project directory
 

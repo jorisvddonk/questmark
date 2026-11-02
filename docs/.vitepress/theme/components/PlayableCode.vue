@@ -2,15 +2,15 @@
 import { nextTick, onMounted, ref } from "vue";
 import { loadQuestmark } from "../runtime";
 import { useQuestmarkPlayer } from "../player";
+import InspectorPanel from "./InspectorPanel.vue";
 
 const tab = ref<"code" | "play">("code");
 const codeHost = ref<HTMLElement | null>(null);
 const outputEl = ref<HTMLElement | null>(null);
 const started = ref(false);
 
-const { transcript, choices, error, status, statusLabel, run, choose } = useQuestmarkPlayer(
-  () => outputEl.value,
-);
+const { transcript, choices, error, status, statusLabel, stack, context, run, choose } =
+  useQuestmarkPlayer(() => outputEl.value);
 
 function sourceText(): string {
   const code = codeHost.value?.querySelector("pre code");
@@ -70,7 +70,12 @@ onMounted(() => {
       <slot />
     </div>
 
-    <div v-if="tab === 'play'" class="qm-code__panel qm-code__play" role="tabpanel" aria-live="polite">
+    <div
+      v-show="tab === 'play'"
+      class="qm-code__panel qm-code__play"
+      role="tabpanel"
+      aria-live="polite"
+    >
       <div ref="outputEl" class="qm-player">
         <p v-if="transcript.length === 0 && !error" class="qm-empty">Starting the document…</p>
 
@@ -93,5 +98,7 @@ onMounted(() => {
         <p v-if="status === 'ended'" class="qm-ended">— The end —</p>
       </div>
     </div>
+
+    <InspectorPanel v-show="tab === 'play'" :stack="stack" :context="context" />
   </div>
 </template>

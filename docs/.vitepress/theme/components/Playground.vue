@@ -3,14 +3,14 @@ import { onMounted, ref } from "vue";
 import { loadQuestmark } from "../runtime";
 import { DEFAULT_DOCUMENT, EXAMPLES } from "../examples";
 import { useQuestmarkPlayer } from "../player";
+import InspectorPanel from "./InspectorPanel.vue";
 
 const source = ref(DEFAULT_DOCUMENT);
 const selectedExample = ref(EXAMPLES[0].name);
 const outputEl = ref<HTMLElement | null>(null);
 
-const { transcript, choices, error, status, statusLabel, run, choose, reset } = useQuestmarkPlayer(
-  () => outputEl.value,
-);
+const { transcript, choices, error, status, statusLabel, stack, context, run, choose, reset } =
+  useQuestmarkPlayer(() => outputEl.value);
 
 function runSource() {
   run(source.value);
@@ -97,6 +97,8 @@ onMounted(() => {
 
           <p v-if="status === 'ended'" class="qm-ended">— The end —</p>
         </div>
+
+        <InspectorPanel :stack="stack" :context="context" />
       </section>
     </div>
   </div>

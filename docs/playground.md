@@ -12,6 +12,10 @@ run locally, and nothing you type is sent anywhere.
 This page is the editable playground. If you only want to play an example from
 the documentation, use the **Play** tab on that code block instead.
 
+Both the playground and the inline players have an **Inspect state** panel.
+Open it to see the live VM stack and context after each turn — useful for
+checking what a precondition sees, or for spotting a value left on the stack.
+
 <Playground />
 
 ## Things to try

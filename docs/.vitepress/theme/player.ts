@@ -22,6 +22,8 @@ export function useQuestmarkPlayer(getOutputEl?: () => HTMLElement | null) {
   const choices = ref<Choice[]>([]);
   const error = ref("");
   const status = ref<PlayStatus>("idle");
+  const stack = ref<unknown[]>([]);
+  const context = ref<Record<string, string | number>>({});
 
   let currentVm: any = null;
   let pendingResolve: ((id: number) => void) | null = null;
@@ -57,7 +59,20 @@ export function useQuestmarkPlayer(getOutputEl?: () => HTMLElement | null) {
     transcript.value = [];
     choices.value = [];
     error.value = "";
+    stack.value = [];
+    context.value = {};
     openBlock = false;
+  }
+
+  /** Freeze the interpreter state for the inspector. */
+  function snapshotState() {
+    if (currentVm) {
+      stack.value = currentVm.stack.slice();
+      context.value = { ...currentVm.context };
+    } else {
+      stack.value = [];
+      context.value = {};
+    }
   }
 
   function stop() {
@@ -80,6 +95,7 @@ export function useQuestmarkPlayer(getOutputEl?: () => HTMLElement | null) {
     pendingResolve = null;
     choices.value = [];
     status.value = "error";
+    snapshotState();
     scrollToBottom();
   }
 
@@ -110,6 +126,7 @@ export function useQuestmarkPlayer(getOutputEl?: () => HTMLElement | null) {
     } else if (pendingResolve) {
       status.value = "waiting";
     }
+    snapshotState();
   }
 
   async function run(source: string) {
@@ -141,6 +158,7 @@ export function useQuestmarkPlayer(getOutputEl?: () => HTMLElement | null) {
           choices.value = available.map((choice) => ({ id: choice.id, title: choice.title }));
           openBlock = false;
           status.value = "waiting";
+          snapshotState();
           scrollToBottom();
         }),
     );
@@ -185,6 +203,8 @@ export function useQuestmarkPlayer(getOutputEl?: () => HTMLElement | null) {
     error,
     status,
     statusLabel,
+    stack,
+    context,
     run,
     choose,
     reset,
