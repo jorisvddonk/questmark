@@ -442,10 +442,12 @@ export function parseMarkdown(file_contents: string) {
     }
   };
   visit(root, visitorFunc);
+  // removePosition mutates the tree in place and returns undefined.
+  removePosition(root, { force: true });
   q(invokeFunction("exit")); // ensure we always exit at the end
 
   return {
-    parsedMDFile: removePosition(root, { force: true }),
+    parsedMDFile: root,
     qvmState
   }
 }

@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { compile } = require("./helpers.cjs");
+const { parseMarkdown } = require("../dist/node/parseMarkdown.js");
 
 const BASIC = `
 # QUESTMARK-OPTIONS-HEADER
@@ -110,4 +111,23 @@ test("compiles empty input to an empty program that just exits", () => {
   assert.deepEqual(state.labelMap, {});
   const fns = state.programList.filter((i) => i.type === INST_FN).map((i) => i.functionName);
   assert.ok(fns.includes("exit"));
+});
+
+test("returns the parsed document tree with positions removed", () => {
+  const { parsedMDFile, qvmState } = parseMarkdown(BASIC);
+
+  assert.equal(parsedMDFile.type, "questmarkDocument");
+  const states = parsedMDFile.children.filter((node) => node.type === "state");
+  assert.deepEqual(states.map((state) => state.name), ["start", "north"]);
+  assert.equal(states[0].position, undefined);
+
+  const [northOption, exitOption] = states[0].options;
+  assert.equal(northOption.text, "Go north");
+  assert.equal(northOption.link, "#north");
+  assert.equal(northOption.directives, null);
+  assert.equal(exitOption.text, "Go away");
+  assert.equal(exitOption.link, null);
+
+  assert.equal(typeof qvmState.labelMap.start, "number");
+  assert.equal(typeof qvmState.labelMap.north, "number");
 });
