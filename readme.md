@@ -50,6 +50,24 @@ npm test
 You can also use the published CLI with `npx questmark` (see the
 [how-to guide](docs/how-to/play-a-document.md)).
 
+## Testing
+
+```bash
+# Build, then run the full suite
+npm test
+
+# Same suite with a coverage report and 80% line/branch/function thresholds
+npm run test:coverage
+
+# Only the portable conformance cases
+npm run conformance
+```
+
+The suite covers the compiler, the VM, the CLI, the browser bundle, every
+playable documentation example, and a [portable conformance corpus](test/conformance/)
+that other Questmark runtimes can reuse. See
+[`test/conformance/README.md`](test/conformance/README.md) for the case format.
+
 ## Examples
 
 The [examples](examples) folder contains playable documents. Notably,

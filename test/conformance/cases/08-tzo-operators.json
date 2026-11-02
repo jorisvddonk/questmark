@@ -1,0 +1,17 @@
+{
+  "description": "tzo operators",
+  "choices": [
+    "Done"
+  ],
+  "expected": {
+    "emitted": "Sub one: -7\nSub two: 7\nConcat: ba / ab\nChar: A\nNot: 1\nAnd: 0\nOr: 1Done.\n",
+    "menus": [
+      [
+        "Done"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

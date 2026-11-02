@@ -1,0 +1,17 @@
+{
+  "description": "comment",
+  "choices": [
+    "Done"
+  ],
+  "expected": {
+    "emitted": "Visible line.\n\nDone.\n",
+    "menus": [
+      [
+        "Done"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

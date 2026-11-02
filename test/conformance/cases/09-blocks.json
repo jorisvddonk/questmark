@@ -1,0 +1,19 @@
+{
+  "description": "blocks",
+  "choices": [
+    "Leave"
+  ],
+  "expected": {
+    "emitted": "The torch burns.\nYou leave the cave.\n",
+    "menus": [
+      [
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {
+      "torch": 1
+    },
+    "stack": []
+  }
+}

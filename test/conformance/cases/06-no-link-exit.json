@@ -1,0 +1,18 @@
+{
+  "description": "no link exit",
+  "choices": [
+    "Ask about the harvest"
+  ],
+  "expected": {
+    "emitted": "The oracle waits, eyes closed.\n\n\"There will be rain.\"",
+    "menus": [
+      [
+        "Ask about the harvest",
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

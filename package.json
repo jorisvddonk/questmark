@@ -13,6 +13,8 @@
     "build": "npx cross-env rm -rf dist/ && tsc -p tsconfig.json && npm run wp_build",
     "wp_build": "webpack build --config webpack.config.cjs",
     "test": "npm run build && node --test \"test/**/*.test.cjs\"",
+    "test:coverage": "npm run build && node --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 --test-coverage-exclude=dist/browser/bundle.js \"--test-coverage-exclude=test/**\" \"test/**/*.test.cjs\"",
+    "conformance": "npm run build && node --test test/conformance.test.cjs",
     "start": "tsx ./src/cli.ts",
     "docs:dev": "npm run wp_build && vitepress dev docs",
     "docs:build": "npm run wp_build && vitepress build docs",

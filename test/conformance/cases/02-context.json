@@ -1,0 +1,26 @@
+{
+  "description": "context",
+  "choices": [
+    "Buy something",
+    "Leave"
+  ],
+  "expected": {
+    "emitted": "Ada has 3 coins.\n\nBought one.2 coins left.\n",
+    "menus": [
+      [
+        "Buy something",
+        "Leave"
+      ],
+      [
+        "Buy something",
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {
+      "name": "Ada",
+      "coins": 2
+    },
+    "stack": []
+  }
+}

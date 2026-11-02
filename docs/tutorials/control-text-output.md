@@ -125,14 +125,14 @@ Keep comments in the same document as the prose they describe: they survive
 review, diff cleanly, and cannot drift out of sync the way an external notes
 file can.
 
-## 5. Escape sequences and `whitespace: retain`
+## 5. Source text and `whitespace: retain`
 
 By default, Markdown escapes are resolved before emission: `\*` becomes `*`,
-`\[` becomes `[`, and so on. That is usually what you want.
+`\[` becomes `[`, and HTML entities are decoded. That is usually what you want.
 
-Setting `options.whitespace` to `"retain"` changes the compiler to take text
-**verbatim from the source**, including backslashes. Compare the previous
-section with this one:
+Setting `options.whitespace` to `"retain"` tells the compiler to use the
+original source substring for each text node instead of the parsed text. HTML
+entities and literal backslashes are preserved:
 
 ```markdown{playground}
 # QUESTMARK-OPTIONS-HEADER
@@ -145,7 +145,7 @@ section with this one:
 
 # start
 
-Escapes stay on the page here: \*stars\* and \[brackets\].
+Retained: A &amp; B and a literal C:\\path.
 
 * [Continue](#end)
 
@@ -155,8 +155,13 @@ Done.
 `exit`
 ```
 
-Use `retain` when the document is a faithful transcript of source text, or when
-you deliberately want to show Markdown syntax. For normal prose, leave it off.
+That document emits `A &amp; B` and `C:\\path` as written. Without `retain` it
+would emit `A & B` and `C:\path`.
+
+The standard Markdown escapes (`\*`, `\[`, `\]`, `\#`, `\(`, `\)`) are still
+resolved, so `\*` still becomes `*`. `retain` changes how text is extracted, not
+how Questmark paragraphs are formed. Use it when the document is a faithful
+transcript of source text; leave it off for normal prose.
 
 ## 6. `emit_on: end_of_line`
 
@@ -239,7 +244,8 @@ in an indented code block, and `initial-state` should name a real state.
 - Strong and emphasis both become `*text*`; links in prose lose their target.
 - Only `#` headings define states; `##` and deeper break the current state.
 - `comment` code blocks are invisible to the compiler and the player.
-- `whitespace: retain` keeps source text verbatim.
+- `whitespace: retain` uses source text for each node, preserving entities and
+  literal backslashes (Markdown escapes still resolve).
 - `emit_on: end_of_line` batches text, and can reorder inline-code output.
 - `strip_leading_newlines` cleans up batched chunks.
 

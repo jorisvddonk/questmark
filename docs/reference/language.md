@@ -48,7 +48,7 @@ The `QUESTMARK-OPTIONS-HEADER` section configures the document. Its fields:
 | Flag | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `no_link_behaviour` | `"loopback_to_options"`, `"exit"` | `"loopback_to_options"` | What happens after an option with no link is chosen. |
-| `whitespace` | `"retain"` | normal | Retain original source whitespace instead of the parsed text. |
+| `whitespace` | `"retain"` | normal | Use source text for each node (entities and literal backslashes preserved). |
 | `emit_on` | `"classic"`, `"end_of_line"` | `"classic"` | Emit on every text node, or only when a line ends. |
 | `strip_leading_newlines` | `true` | `false` | Strip leading newlines from emitted text chunks. |
 
@@ -514,9 +514,10 @@ Questmark emits text, not HTML. The host decides how to present it.
 
 ### Formatting flags
 
-**`whitespace: "retain"`** takes text verbatim from the source, including
-backslashes and original spacing, instead of using the parsed text. Use it for
-faithful transcripts; leave it off for normal prose.
+**`whitespace: "retain"`** uses the original source substring for each text
+node, so HTML entities and literal backslashes are preserved instead of being
+decoded. Standard Markdown escapes such as `\*` are still resolved, and
+paragraph structure is unchanged.
 
 **`emit_on: "end_of_line"`** accumulates text until a line ends. Inline code
 still executes immediately, so its output can appear before the text that

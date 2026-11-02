@@ -1,0 +1,27 @@
+{
+  "description": "basic",
+  "choices": [
+    "Go north",
+    "Go back",
+    "Leave"
+  ],
+  "expected": {
+    "emitted": "You are in a small room.\n\nA cold corridor.\n\nYou are in a small room.\n\nYou step outside.\n",
+    "menus": [
+      [
+        "Go north",
+        "Leave"
+      ],
+      [
+        "Go back"
+      ],
+      [
+        "Go north",
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

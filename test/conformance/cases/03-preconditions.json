@@ -1,0 +1,37 @@
+{
+  "description": "preconditions",
+  "choices": [
+    "Gather wood",
+    "Gather wood",
+    "Light the fire",
+    "Leave"
+  ],
+  "expected": {
+    "emitted": "Wood: 0.\n\nYou gather wood.You gather wood.The fire burns.You leave the camp.\n",
+    "menus": [
+      [
+        "Gather wood",
+        "Leave"
+      ],
+      [
+        "Gather wood",
+        "Leave"
+      ],
+      [
+        "Gather wood",
+        "Light the fire",
+        "Leave"
+      ],
+      [
+        "Gather wood",
+        "Light the fire",
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {
+      "wood": 2
+    },
+    "stack": []
+  }
+}

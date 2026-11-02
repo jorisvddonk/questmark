@@ -1,0 +1,28 @@
+{
+  "description": "once",
+  "choices": [
+    "Read the notice",
+    "Sharpen the knife",
+    "Leave"
+  ],
+  "expected": {
+    "emitted": "The notice says hello.You sharpen the knife.You leave.\n",
+    "menus": [
+      [
+        "Read the notice",
+        "Sharpen the knife",
+        "Leave"
+      ],
+      [
+        "Sharpen the knife",
+        "Leave"
+      ],
+      [
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

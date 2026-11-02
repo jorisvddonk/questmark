@@ -1,0 +1,25 @@
+{
+  "description": "post option",
+  "choices": [
+    "Open the box",
+    "Leave"
+  ],
+  "expected": {
+    "emitted": "A box sits on the table.\n\nInside is a key.You leave the room.\n",
+    "menus": [
+      [
+        "Open the box",
+        "Leave"
+      ],
+      [
+        "Open the box",
+        "Leave"
+      ]
+    ],
+    "exit": true,
+    "context": {
+      "opened": 1
+    },
+    "stack": []
+  }
+}

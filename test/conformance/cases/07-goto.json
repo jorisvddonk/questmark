@@ -1,0 +1,26 @@
+{
+  "description": "goto",
+  "choices": [
+    "Learn a secret",
+    "Take the tunnel"
+  ],
+  "expected": {
+    "emitted": "Two routes lead on.\n\nYou find the tunnel.\n",
+    "menus": [
+      [
+        "Learn a secret",
+        "Take the road"
+      ],
+      [
+        "Learn a secret",
+        "Take the tunnel",
+        "Take the road"
+      ]
+    ],
+    "exit": true,
+    "context": {
+      "secret": 1
+    },
+    "stack": []
+  }
+}

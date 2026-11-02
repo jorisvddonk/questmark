@@ -1,0 +1,26 @@
+{
+  "description": "host hook",
+  "choices": [
+    "Use the hook",
+    "Done"
+  ],
+  "expected": {
+    "emitted": "The document carries on.Done.\n",
+    "menus": [
+      [
+        "Use the hook",
+        "Done"
+      ],
+      [
+        "Use the hook",
+        "Done"
+      ]
+    ],
+    "exit": true,
+    "context": {
+      "hook_used": 1,
+      "pending_item": "lamp"
+    },
+    "stack": []
+  }
+}

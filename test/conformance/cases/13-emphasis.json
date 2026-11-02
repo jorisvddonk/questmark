@@ -1,0 +1,17 @@
+{
+  "description": "emphasis",
+  "choices": [
+    "Done"
+  ],
+  "expected": {
+    "emitted": "This is *bold* and *italic* and a link.\n\nDone.\n",
+    "menus": [
+      [
+        "Done"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

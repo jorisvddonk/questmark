@@ -1,0 +1,17 @@
+{
+  "description": "emit on end of line",
+  "choices": [
+    "Done"
+  ],
+  "expected": {
+    "emitted": "Line one.\nLine two.\n\nDone.\n",
+    "menus": [
+      [
+        "Done"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}

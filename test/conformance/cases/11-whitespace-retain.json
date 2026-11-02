@@ -1,0 +1,17 @@
+{
+  "description": "whitespace retain",
+  "choices": [
+    "Done"
+  ],
+  "expected": {
+    "emitted": "Retained: A &amp; B and a literal C:\\\\path.\n\nDone.\n",
+    "menus": [
+      [
+        "Done"
+      ]
+    ],
+    "exit": true,
+    "context": {},
+    "stack": []
+  }
+}
