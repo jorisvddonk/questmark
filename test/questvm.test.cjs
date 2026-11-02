@@ -251,3 +251,38 @@ test("underscore hooks are stack-neutral and read arguments from the context", a
   assert.equal(withHook.emitted, withoutHook.emitted);
   assert.deepEqual(withHook.stack, withoutHook.stack);
 });
+
+test("an instruction budget stops a looping document", () => {
+  class BudgetVM extends QuestVM {
+    constructor(emit, choose, hooks, maxTicks) {
+      super(emit, choose, hooks);
+      this.maxTicks = maxTicks;
+      this.ticks = 0;
+    }
+
+    tick() {
+      this.ticks += 1;
+      if (this.ticks > this.maxTicks) {
+        this.quit();
+        throw new Error("instruction budget exceeded");
+      }
+      super.tick();
+    }
+  }
+
+  const looping = `
+# QUESTMARK-OPTIONS-HEADER
+
+    { "questmark-spec": "1.0", "initial-state": "start" }
+
+# start
+
+\`"start" goto\`
+`;
+
+  const vm = new BudgetVM(() => {}, async () => 0, {}, 200);
+  vm.loadVMState(parseMarkdown(looping).qvmState);
+
+  assert.throws(() => vm.run(), /instruction budget exceeded/);
+  assert.equal(vm.exit, true);
+});

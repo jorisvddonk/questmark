@@ -117,7 +117,30 @@ The output panel shows the emitted text, the current choice menu, and the error
 message when something throws. Because the playground starts a fresh VM on each
 run, it is also the easiest way to test `@once` and context from a clean state.
 
-## 7. Add temporary instrumentation
+## 7. Inspect the VM state
+
+Both the inline **Play** tab and the playground have an **Inspect state** panel
+under the story. Open it while the document is waiting for a choice. It shows:
+
+- **Stack** — the values currently on the interpreter stack. For a healthy
+  document this is empty at every menu.
+- **Context** — the context bag, sorted by key. Keys beginning with `__` are
+  runtime bookkeeping (`@once` uses `__once__N`).
+
+The snapshot refreshes whenever a menu is built, when the VM exits, and when an
+error occurs. Use it to:
+
+- check what a precondition actually sees (`trust` is 2, not 3);
+- confirm an effect ran (`coins` changed after the choice);
+- spot a leaked value before it changes a later gate. A non-empty stack at a
+  menu means some snippet pushed without consuming; find it in the option
+  effect or state text and balance it;
+- confirm that `@once` consumed a topic by looking for a `__once__` key.
+
+The panel is read-only. It does not modify the VM, so you can leave it open
+while you play.
+
+## 8. Add temporary instrumentation
 
 Because `emit` prints any value, it is a reliable debugger:
 

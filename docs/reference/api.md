@@ -18,8 +18,10 @@ Compiles a Questmark document into a Tzo VM state.
 
 **Returns** `{ parsedMDFile, qvmState }`
 
-- `parsedMDFile` — the parsed document as a unist tree with position
-  information removed. Useful for tooling, linting, or custom directives.
+- `parsedMDFile` — the compiler's document tree (`questmarkDocument` with
+  `state` and `option` nodes). It is useful for tooling, link validation, and
+  analyzers. State text positions are removed; compiler-built option children
+  keep their positions. See [document tree and VMState](document-tree.md).
 - `qvmState` — a `QuestMarkVMState` (a `TzoVMState` plus the parsed document),
   ready to load into a `QuestVM` or serialize to JSON.
 
@@ -212,5 +214,7 @@ console.log(emitted.join(""));
 ## Related reading
 
 - [Language reference](language.md) — what the compiler accepts.
+- [Document tree and VMState](document-tree.md) — the shapes `parseMarkdown`
+  returns.
 - [CLI reference](cli.md) — the command-line wrapper.
 - [How to embed Questmark](../how-to/use-the-library.md) — a longer guide.

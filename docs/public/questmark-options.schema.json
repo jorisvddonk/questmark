@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jorisvddonk.github.io/questmark/questmark-options.schema.json",
+  "title": "Questmark options header",
+  "description": "The JSON object in the indented code block under the QUESTMARK-OPTIONS-HEADER heading.",
+  "type": "object",
+  "properties": {
+    "questmark-spec": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Questmark spec version."
+    },
+    "initial-state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the state entered first."
+    },
+    "initial-context": {
+      "type": "object",
+      "description": "Initial context values. Keys are names; values must be strings or numbers.",
+      "additionalProperties": {
+        "type": ["string", "number"]
+      }
+    },
+    "options": {
+      "type": "object",
+      "description": "Interpreter behaviour flags.",
+      "properties": {
+        "no_link_behaviour": {
+          "enum": ["loopback_to_options", "exit"],
+          "description": "What happens after an option with no link is chosen."
+        },
+        "whitespace": {
+          "enum": ["retain"],
+          "description": "Use source text for each node (entities and literal backslashes preserved)."
+        },
+        "emit_on": {
+          "enum": ["classic", "end_of_line"],
+          "description": "Emit on every text node, or only when a line ends."
+        },
+        "strip_leading_newlines": {
+          "type": "boolean",
+          "description": "Strip leading newlines from emitted text chunks."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

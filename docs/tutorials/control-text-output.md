@@ -49,7 +49,7 @@ Questmark keeps only a small part of Markdown's inline formatting:
 
 Both strong and emphasis arrive as a single pair of asterisks. Links in state
 text are plain text; only links on **options** change navigation. Images are
-not handled specially — expect their alt text, not an image.
+dropped entirely — their alt text is not emitted either.
 
 ```markdown{playground}
 # QUESTMARK-OPTIONS-HEADER

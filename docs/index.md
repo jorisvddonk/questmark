@@ -67,7 +67,13 @@ splits documentation into four complementary modes of use:
   the [cheat sheet](reference/cheatsheet) if you want a one-page summary.
 - **Looking for a pattern?** The [cookbook](how-to/recipes) collects
   copy-paste solutions for counters, inventories, random tables, and other
-  common situations.
+  common situations, and [design patterns](how-to/quest-patterns) covers
+  larger quest and dialogue structures.
+- **Integrating Questmark?** The [runtime guide](how-to/implement-a-runtime),
+  [save/load guide](how-to/save-and-load), and
+  [untrusted-document guide](how-to/run-untrusted-documents) cover the host
+  side, and [document tree and VMState](reference/document-tree) describes the
+  data formats.
 - **Want to understand the design?** The [explanation](explanation/why-questmark)
   pages cover why Questmark exists, how it works, and the wider
   [Questmark and Tzo ecosystem](explanation/ecosystem).

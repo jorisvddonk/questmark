@@ -59,10 +59,15 @@ export default defineConfig({
         items: [
           { text: "Play a document", link: "/how-to/play-a-document" },
           { text: "Compile to bytecode", link: "/how-to/compile-to-bytecode" },
-          { text: "Embed in an application", link: "/how-to/use-the-library" },
           { text: "Debug a document", link: "/how-to/debug-a-document" },
           { text: "Organize a larger document", link: "/how-to/organize-a-document" },
+          { text: "Validate documents in CI", link: "/how-to/validate-in-ci" },
           { text: "Cookbook: common patterns", link: "/how-to/recipes" },
+          { text: "Design patterns for quests and dialogue", link: "/how-to/quest-patterns" },
+          { text: "Embed in an application", link: "/how-to/use-the-library" },
+          { text: "Save and load progress", link: "/how-to/save-and-load" },
+          { text: "Run untrusted documents safely", link: "/how-to/run-untrusted-documents" },
+          { text: "Implement a runtime", link: "/how-to/implement-a-runtime" },
         ],
       },
       {
@@ -71,8 +76,10 @@ export default defineConfig({
         items: [
           { text: "Cheat sheet", link: "/reference/cheatsheet" },
           { text: "Language reference", link: "/reference/language" },
+          { text: "Document tree and VMState", link: "/reference/document-tree" },
           { text: "CLI reference", link: "/reference/cli" },
           { text: "API reference", link: "/reference/api" },
+          { text: "Limitations and compatibility", link: "/reference/limitations" },
         ],
       },
       {
@@ -82,6 +89,7 @@ export default defineConfig({
           { text: "Why Questmark?", link: "/explanation/why-questmark" },
           { text: "How Questmark works", link: "/explanation/how-questmark-works" },
           { text: "Questmark and Tzo ecosystem", link: "/explanation/ecosystem" },
+          { text: "FAQ and comparisons", link: "/explanation/faq" },
         ],
       },
     ],

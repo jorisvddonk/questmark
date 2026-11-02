@@ -52,6 +52,9 @@ The `QUESTMARK-OPTIONS-HEADER` section configures the document. Its fields:
 | `emit_on` | `"classic"`, `"end_of_line"` | `"classic"` | Emit on every text node, or only when a line ends. |
 | `strip_leading_newlines` | `true` | `false` | Strip leading newlines from emitted text chunks. |
 
+A machine-readable schema for the header is available at
+[/questmark/questmark-options.schema.json](/questmark/questmark-options.schema.json).
+
 `initial-context` is applied before execution starts, so every state can read
 those keys safely. `initial-state` is the state entered first; if it is omitted,
 execution starts at the beginning of the compiled program, which is usually the
@@ -626,6 +629,9 @@ You turn back towards the lit windows of the town.
 ## See also
 
 - [Cheat sheet](cheatsheet.md) — the same information on one page.
+- [Document tree and VMState](document-tree.md) — the shapes `parseMarkdown`
+  returns.
+- [Limitations and compatibility](limitations.md) — known constraints.
 - [API reference](api.md) — `parseMarkdown`, `QuestVM`, and the compiled state.
 - [Cookbook: common patterns](../how-to/recipes.md) — copy-paste recipes.
 - [The Questmark and Tzo ecosystem](../explanation/ecosystem.md) — runtimes and
