@@ -106,6 +106,9 @@ with `mdast-util-from-markdown` instead of relying on `parsedMDFile`.
     { "type": "invoke-function-instruction", "functionName": "goto" },
     { "type": "push-string-instruction", "value": "Hello.\n" },
     { "type": "invoke-function-instruction", "functionName": "emit" },
+    { "type": "invoke-function-instruction", "functionName": "exit" },
+    { "type": "invoke-function-instruction", "functionName": "getResponse" },
+    { "type": "invoke-function-instruction", "functionName": "goto" },
     { "type": "invoke-function-instruction", "functionName": "exit" }
   ],
   "labelMap": { "start": 5, "start__options": 8 },

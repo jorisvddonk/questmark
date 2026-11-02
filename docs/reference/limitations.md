@@ -14,10 +14,10 @@ documentation.
   [conformance corpus](https://github.com/jorisvddonk/questmark/blob/master/test/conformance/README.md).
 - There is no formal grammar, versioned migration tool, or compatibility
   guarantee beyond the conformance cases.
-- Unknown fields in the options header are ignored. Invalid values for a known
-  flag (for example an unknown `no_link_behaviour`) are compile errors. Unknown
-  opcodes are an error, except underscore-prefixed host hooks, which are no-ops
-  when unregistered.
+- Unknown fields in the options header are ignored. An invalid
+  `no_link_behaviour` is a compile error; other unrecognised flag values are
+  ignored. Unknown opcodes are an error, except underscore-prefixed host
+  hooks, which are no-ops when unregistered.
 
 ## Document structure
 
