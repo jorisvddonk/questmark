@@ -95,3 +95,25 @@ test("context tutorial: the foraging loop reaches the fire ending", async () => 
   assert.match(emitted, /The fire catches/);
   assert.match(emitted, /stiff and cold/);
 });
+
+test("numbers tutorial: eating is gated on having an apple", async () => {
+  const { choicesSeen } = await run(
+    playgroundDocuments("docs/tutorials/numbers-strings-and-randomness.md")[1],
+    ["Buy an apple", "Eat an apple", "Leave"]
+  );
+
+  assert.deepEqual(choicesSeen[0], ["Buy an apple", "Leave"]);
+  assert.ok(choicesSeen[1].includes("Eat an apple"));
+});
+
+test("numbers tutorial: the dice check totals both dice", async () => {
+  const { emitted } = await run(
+    playgroundDocuments("docs/tutorials/numbers-strings-and-randomness.md")[3],
+    ["Roll the dice", "Walk away"]
+  );
+
+  const match = emitted.match(/You roll (\d+)/);
+  assert.ok(match, `expected a roll in ${JSON.stringify(emitted)}`);
+  const total = Number(match[1]);
+  assert.ok(total >= 2 && total <= 12, `expected 2..12, got ${total}`);
+});

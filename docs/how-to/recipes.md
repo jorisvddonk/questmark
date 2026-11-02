@@ -133,7 +133,7 @@ because execution stops after the first match.
 
 A lock with a sign: "Nine or better."
 
-* Roll the dice `6 randInt 1 + 6 randInt 1 + "roll" setContext`
+* Roll the dice `6 randInt 1 + 6 randInt 1 + + "roll" setContext`
 
   You roll `"roll" getContext emit`.
 

@@ -107,7 +107,7 @@ An apple stall. You have `"coins" getContext emit` coins and
 
   The stallholder drops an apple into your bag.
 
-* Eat an apple `0 "apples" getContext gt` `1 "apples" getContext - "apples" setContext`
+* `0 "apples" getContext gt` Eat an apple `1 "apples" getContext - "apples" setContext`
 
   You eat an apple. It is sharp and sweet.
 
@@ -200,7 +200,7 @@ chosen:
 
 A chest with a heavy combination lock. Above it, a sign reads: "Nine or better."
 
-* Roll the dice `6 randInt 1 + 6 randInt 1 + "roll" setContext`
+* Roll the dice `6 randInt 1 + 6 randInt 1 + + "roll" setContext`
 
   You roll `"roll" getContext emit`.
 
