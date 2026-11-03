@@ -8,22 +8,30 @@ package entry point (`import ... from "questmark"` / `require("questmark")`):
 import { parseMarkdown, QuestVM, NoLinkBehaviour } from "questmark";
 ```
 
-Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`) are
-exported as TypeScript types. The Tzo `Tokenizer` is not re-exported; import it
-from `tzo` if you need to tokenize code yourself.
+Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`,
+`LocalizableMessage`, `Catalog`) are exported as TypeScript types. The Tzo
+`Tokenizer` is not re-exported; import it from `tzo` if you need to tokenize
+code yourself.
 
-## `parseMarkdown(fileContents: string)`
+## `parseMarkdown(fileContents: string, options?: ParseOptions)`
 
 Compiles a Questmark document into a Tzo VM state.
 
-**Returns** `{ parsedMDFile, qvmState }`
+**Returns** `{ parsedMDFile, qvmState, messages }`
 
 - `parsedMDFile` — the compiler's document tree (`questmarkDocument` with
   `state` and `option` nodes). It is useful for tooling, link validation, and
   analyzers. State text positions are removed; compiler-built option children
   keep their positions. See [document tree and VMState](document-tree.md).
 - `qvmState` — a `QuestMarkVMState` (a `TzoVMState` plus the parsed document),
-  ready to load into a `QuestVM` or serialize to JSON.
+  ready to load into a `QuestVM` or serialize to JSON. With
+  `options.localize`, it also contains `messages`.
+- `messages` — every translatable text unit with a path-based ID, source text,
+  and kind. See [runtime localization](runtime-localization.md).
+
+`ParseOptions.localize` compiles text to runtime `message` opcodes and stores
+source templates in `qvmState.messages`. `{{key}}` interpolation works without
+it, compiled inline.
 
 **Throws** on malformed option headers (for example an unknown
 `no_link_behaviour`), invalid JSON in the header, or Tzo tokenizer errors.
@@ -101,6 +109,16 @@ Errors during the initial `run()` are thrown synchronously; errors during a
 resumed run are emitted on `eventBus` and end the VM. Handle both. See
 [How to embed Questmark](../how-to/use-the-library.md#handling-runtime-errors).
 
+### Localization methods
+
+| Method | Description |
+| --- | --- |
+| `setCatalog(catalog \| null)` | Install a runtime locale catalog, or clear it to use source templates. Can be called between turns. |
+| `formatMessage(id, context)` | Format one message id to a string, with fallback and validation. |
+
+`messages` (a `Record<string, string>`) holds the source templates loaded from
+the current VMState; `catalog` is the installed runtime catalog.
+
 ### Inherited methods (from Tzo `VM`)
 
 | Method | Description |
@@ -143,6 +161,37 @@ enum NoLinkBehaviour {
 Behaviour when a chosen option has no link. Exported for host applications;
 documents configure this via the header flag `options.no_link_behaviour`
 (`"exit"` or `"loopback_to_options"`).
+
+## Localization helpers
+
+```ts
+import {
+  extractCatalog,
+  missingTranslations,
+  validateCatalog,
+  validateCatalogForDocument,
+} from "questmark";
+```
+
+| Function | Description |
+| --- | --- |
+| `extractCatalog(markdown, locale?)` | Build an empty catalog from a document's messages. |
+| `missingTranslations(markdown, catalog)` | IDs that are missing or empty. |
+| `validateCatalog(catalog)` | Check the catalog envelope (version, locale, messages). |
+| `validateCatalogForDocument(markdown, catalog)` | Return source/placeholder/unknown-ID errors without running. |
+
+`Catalog`:
+
+```ts
+interface Catalog {
+  version: 1;
+  locale: string;
+  messages: Record<string, { source: string; translation: string }>;
+}
+```
+
+See [runtime localization](runtime-localization.md) for the runtime `message`
+contract and `setCatalog` behaviour.
 
 ## `QuestMarkVMState`
 
@@ -216,5 +265,7 @@ console.log(emitted.join(""));
 - [Language reference](language.md) — what the compiler accepts.
 - [Document tree and VMState](document-tree.md) — the shapes `parseMarkdown`
   returns.
+- [Runtime localization](runtime-localization.md) — the `message` opcode and
+  catalogs.
 - [CLI reference](cli.md) — the command-line wrapper.
 - [How to embed Questmark](../how-to/use-the-library.md) — a longer guide.

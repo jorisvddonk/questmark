@@ -20,11 +20,18 @@ package with `npx questmark [options]`.
 | `-c, --clear` | Clear the console on each state. *(Declared but not yet implemented.)* |
 | `--input <path>` | Load a source `.md`, `.qmd`, `.qmd.html`, `.md.html`, or `.json` file. `path` can be a local filesystem path or an `http(s)://` URL. |
 | `--output <path>` | Emit the compiled VMState as JSON to `path`. |
+| `--localize` | Compile source text to runtime message references. |
+| `--catalog <path>` | Set a runtime localization catalog. On source input, implies `--localize`. |
+| `--extract-catalog <path>` | Write a localization catalog for the source document and exit. |
+| `--locale <code>` | Locale metadata for `--extract-catalog`. Default `en`. |
 | `--no-run` | Do not interpret the input; only parse and (optionally) emit output. |
 | `-h, --help` | Display help. |
 
 `--input` is required. Without it the CLI prints `Missing input!` and exits
 with status 1.
+
+`--extract-catalog` cannot be combined with `--localize` or `--catalog`.
+`--localize` applies to source documents, not to a compiled `.json` input.
 
 ## Examples
 
@@ -45,6 +52,15 @@ Play a compiled document:
 ```bash
 questmark --input vmstate.json
 ```
+
+Compile and play a runtime-localized document:
+
+```bash
+questmark --input story.md --localize --output story.vmstate.json --no-run
+questmark --input story.vmstate.json --catalog locales/fr.json
+```
+
+See [localize at runtime](../how-to/localize-at-runtime.md).
 
 Play a document hosted online:
 

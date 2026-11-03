@@ -515,6 +515,27 @@ Questmark emits text, not HTML. The host decides how to present it.
   paragraphs. They are not structural for Questmark.
 - Fenced `comment` blocks are skipped.
 
+### Interpolation
+
+Text in state prose, post-option text, and option labels may contain
+`{{key}}` placeholders:
+
+```markdown
+Hello {{name}}, you have {{coins}} coins.
+* Buy for {{price}} coins
+```
+
+In a normal build the compiler turns a placeholder into a context lookup:
+`"key" getContext emit` in prose, or a value concatenated into an option label.
+The value must be a string or number, and a missing key throws the same error as
+`getContext`.
+
+In a localized build (`localize: true`) the placeholder stays in a runtime
+message template and is formatted by the `message` opcode, so a translation can
+reorder it. `{{` is reserved syntax; there is no escape for a literal `{{` yet.
+
+See [runtime localization](runtime-localization.md).
+
 ### Formatting flags
 
 **`whitespace: "retain"`** uses the original source substring for each text

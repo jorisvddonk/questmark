@@ -20,6 +20,7 @@ import { u } from "unist-builder";
 import 'array-flat-polyfill';
 import { TzoVMState } from "tzo";
 import { Tokenizer, pushString, pushNumber, invokeFunction } from "tzo";
+import { splitTemplate, type TemplatePart } from "./messageTemplate.js";
 
 export type Directive = string;
 
@@ -32,7 +33,33 @@ export type OptionNode = Node & {
   link: null | string,
 }
 
-export type QuestMarkVMState = Node & TzoVMState;
+export type QuestMarkVMState = Node & TzoVMState & {
+  /** Present when the document was compiled with `localize: true`. */
+  messages?: Record<string, string>;
+};
+
+/**
+ * A piece of text that can be translated. Path-based IDs are stable while the
+ * document structure is stable; the source is carried along so catalogs can
+ * detect stale translations.
+ */
+export interface LocalizableMessage {
+  id: string;
+  kind: "state-text" | "option-label" | "option-text";
+  source: string;
+  state: string;
+  optionIndex?: number;
+}
+
+export interface ParseOptions {
+  /**
+   * Compile translatable text to runtime message references instead of
+   * literal strings. The source templates are stored in qvmState.messages and
+   * formatted by QuestVM's `message` opcode, which lets a host switch locale
+   * at runtime.
+   */
+  localize?: boolean;
+}
 
 export enum NoLinkBehaviour {
   EXIT = 0, // Exit the quest if no link is found for an option. NOT RECOMMENDED - Prefer using explicit exits instead by calling the `exit` instruction!
@@ -57,7 +84,7 @@ enum EmitOn {
   END_OF_LINE = 1, // only on end of line
 }
 
-export function parseMarkdown(file_contents: string) {
+export function parseMarkdown(file_contents: string, parseOptions: ParseOptions = {}) {
   const tree = fromMarkdown(file_contents);
   const tokenizer = new Tokenizer();  const root = u('questmarkDocument', { options: {} }, []);
   let last_once_directive_nr = 0;
@@ -66,6 +93,10 @@ export function parseMarkdown(file_contents: string) {
   let emitOn = EmitOn.CLASSIC;
   let missed_emits = 0;
   let strip_leading_newlines = false;
+  let currentState = "";
+  let stateTextIndex = 0;
+  let optionTextIndex = 0;
+  const messages: LocalizableMessage[] = [];
   visitParents(tree, 'heading', (x, ancestors) => {
     if (ancestors.length > 1) {
       return;
@@ -216,6 +247,129 @@ export function parseMarkdown(file_contents: string) {
   const q = (a) => {
     qvmState.programList.push(a);
   }
+
+  const formatText = (n: Node, parentNode: Node | undefined, text: string) => {
+    text = text.replaceAll('\\*', '*').replaceAll('\\[', '[').replaceAll('\\]', ']').replaceAll('\\#', '#').replaceAll('\\`', '`').replaceAll('\\(', '(').replaceAll('\\)', ')');
+    if (parentNode?.type === "emphasis" || parentNode?.type === "strong") {
+      text = `*${text}*`;
+    }
+    if (strip_leading_newlines) {
+      text = text.replace(/^[\r\n]+/, "");
+    }
+    return text;
+  };
+
+  const paragraphSuffix = (n: Node, parentNode: Node | undefined) => {
+    if (parentNode?.type === "paragraph" && parentNode.children?.indexOf(n) === parentNode.children.length - 1) {
+      return "\n\n";
+    }
+    return "";
+  };
+
+  const splitTrailingNewlines = (text: string) => {
+    const match = text.match(/\n+$/);
+    if (!match) {
+      return { body: text, trailing: "" };
+    }
+    return { body: text.slice(0, -match[0].length), trailing: match[0] };
+  };
+
+  const pushTemplatePart = (part: TemplatePart) => {
+    if (part.type === "text") {
+      q(pushString(part.value));
+    } else {
+      q(pushString(part.key));
+      q(invokeFunction("getContext"));
+    }
+  };
+
+  const flushMissed = () => {
+    if (missed_emits === 0) {
+      return;
+    }
+    while (missed_emits > 1) {
+      q(invokeFunction("rconcat"));
+      missed_emits -= 1;
+    }
+    missed_emits = 0;
+    q(invokeFunction("emit"));
+  };
+
+  /**
+   * Compile a template into push/emit instructions. In classic mode this
+   * emits one combined chunk; in end-of-line mode it defers until a line ends.
+   */
+  const compileTemplateEmit = (parts: TemplatePart[], suffix: string, rawForLine: string) => {
+    const finalParts = suffix.length > 0
+      ? [...parts, { type: "text" as const, value: suffix }]
+      : parts;
+    const nonEmpty = finalParts.filter((part) => part.type === "placeholder" || part.value.length > 0);
+    if (nonEmpty.length === 0) {
+      return;
+    }
+
+    for (const part of nonEmpty) {
+      pushTemplatePart(part);
+      missed_emits += 1;
+    }
+
+    const flush = emitOn === EmitOn.CLASSIC
+      || (emitOn === EmitOn.END_OF_LINE && rawForLine.replace(/[\t\f\v ]+$/, "").endsWith('\n'));
+    if (flush) {
+      flushMissed();
+    }
+  };
+
+  /** Build a menu label string on the stack. */
+  const compileLabelTemplate = (text: string) => {
+    const parts = splitTemplate(text).filter((part) => part.type === "placeholder" || part.value.length > 0);
+    if (parts.length === 0) {
+      q(pushString(""));
+      return;
+    }
+
+    pushTemplatePart(parts[0]);
+    for (let i = 1; i < parts.length; i += 1) {
+      pushTemplatePart(parts[i]);
+      q(invokeFunction("rconcat"));
+    }
+    if (parts.some((part) => part.type === "placeholder")) {
+      // Ensure the label is a string even when it is exactly one numeric value.
+      q(pushString(""));
+      q(invokeFunction("rconcat"));
+    }
+  };
+
+  const compileMessageEmit = (id: string, suffix: string, rawForLine: string) => {
+    q(pushString(id));
+    q(invokeFunction("message"));
+    missed_emits += 1;
+
+    if (suffix.length > 0) {
+      q(pushString(suffix));
+      missed_emits += 1;
+    }
+
+    const flush = emitOn === EmitOn.CLASSIC
+      || (emitOn === EmitOn.END_OF_LINE && rawForLine.replace(/[\t\f\v ]+$/, "").endsWith('\n'));
+    if (flush) {
+      flushMissed();
+    }
+  };
+
+  const registerMessage = (
+    kind: LocalizableMessage["kind"],
+    id: string,
+    source: string,
+    optionIndex?: number,
+  ) => {
+    const message: LocalizableMessage = { id, kind, source, state: currentState };
+    if (optionIndex !== undefined) {
+      message.optionIndex = optionIndex;
+    }
+    messages.push(message);
+  };
+
   const visitorFunc: Visitor<Node> = (node, index, parent) => {
     let getText = (n: Node) => {
       let text = "";
@@ -227,20 +381,7 @@ export function parseMarkdown(file_contents: string) {
       return text;
     }
 
-    let fixText = (n: Node) => {
-      let text = getText(n);
-      if (parent.type === "paragraph" && parent.children.indexOf(n) === parent.children.length - 1) {
-        text = text + '\n\n';
-      }
-      text = text.replaceAll('\\*', '*').replaceAll('\\[', '[').replaceAll('\\]', ']').replaceAll('\\#', '#').replaceAll('\\`', '`').replaceAll('\\(', '(').replaceAll('\\)', ')')
-      if (parent.type === "emphasis" || parent.type === "strong") {
-        text = `*${text}*`;
-      }
-      if (strip_leading_newlines) {
-        text = text.replace(/^[\r\n]+/, "");
-      }
-      return text;
-    }
+    let localizableText = (n: Node) => formatText(n, parent, getText(n));
 
     if (parent === undefined && node.type !== "questmarkDocument") {
       return;
@@ -297,19 +438,14 @@ export function parseMarkdown(file_contents: string) {
       case "state":
         const nodeLabel = node.name as string;
         const nodeOptionsLabel = node.name + "__options" as string;
+        currentState = nodeLabel;
+        stateTextIndex = 0;
         qvmState.labelMap[nodeLabel] = qvmState.programList.length;
         visit(node, visitorFunc); // parse children immediately, before we parse the node's options
         // if there are any missing emits, perform them now
-        if (missed_emits > 0) {
-          while(missed_emits > 1) {
-            q(invokeFunction("rconcat"));
-            missed_emits -= 1;
-          }
-          missed_emits = 0;
-          q(invokeFunction("emit")); // need to still emit!
-        }
+        flushMissed();
         qvmState.labelMap[nodeOptionsLabel] = qvmState.programList.length; // add a label immediately after the node's options to be able to shortcut jump to in certain cases
-        (node.options as OptionNode[]).forEach(option => {
+        (node.options as OptionNode[]).forEach((option, optionIndex) => {
           let has_precondition = false;
           let has_once_directive = false;
           let once_directive_name = null;
@@ -344,7 +480,14 @@ export function parseMarkdown(file_contents: string) {
               // TODO: support inlineCode in options. Can do via `concat`.
               console.warn("WARN: Option text contains a backtick. Inline code elements in option blocks is currently not supported!");
             }
-            q(pushString(option.text))
+            const labelId = `${currentState}.option.${optionIndex}.label`;
+            registerMessage("option-label", labelId, option.text, optionIndex);
+            if (parseOptions.localize) {
+              q(pushString(labelId));
+              q(invokeFunction("message"));
+            } else {
+              compileLabelTemplate(option.text);
+            }
           }
           q(invokeFunction("ppc")); // push address of effect body to stack
           q(pushNumber(4));
@@ -356,6 +499,7 @@ export function parseMarkdown(file_contents: string) {
             q(pushString(once_directive_name));
             q(invokeFunction("setContext"));
           }
+          optionTextIndex = 0;
           if (option.effectChildren !== null) {
             option.effectChildren.forEach(child => {
               if (child.type === "inlineCode") {
@@ -366,30 +510,30 @@ export function parseMarkdown(file_contents: string) {
                 }
                 tokenizer.parse(child.value as string).forEach(i => q(i));
               } else {
-                let t = getText(child);
-                q(pushString(fixText(child), t));
-                if (emitOn === EmitOn.CLASSIC || (emitOn === EmitOn.END_OF_LINE && t.replace(/[\t\f\v ]+$/, "").endsWith('\n'))) {
-                  while (missed_emits > 0) {
-                    q(invokeFunction("rconcat"));
-                    missed_emits -= 1;
+                const raw = getText(child);
+                const formatted = localizableText(child);
+                const { body, trailing } = splitTrailingNewlines(formatted);
+                const suffix = trailing + paragraphSuffix(child, parent);
+
+                if (body.trim().length > 0) {
+                  const id = `${currentState}.option.${optionIndex}.text.${optionTextIndex}`;
+                  registerMessage("option-text", id, body, optionIndex);
+                  optionTextIndex += 1;
+
+                  if (parseOptions.localize) {
+                    compileMessageEmit(id, suffix, raw);
+                  } else {
+                    compileTemplateEmit(splitTemplate(body), suffix, raw);
                   }
-                  q(invokeFunction("emit"));
                 } else {
-                  missed_emits += 1;
+                  compileTemplateEmit(splitTemplate(body), suffix, raw);
                 }
               }
             })
           }
 
           // if there are any missing emits, perform them now before we close off this option effect body
-          if (missed_emits > 0) {
-            while(missed_emits > 1) {
-              q(invokeFunction("rconcat"));
-              missed_emits -= 1;
-            }
-            missed_emits = 0;
-            q(invokeFunction("emit")); // need to still emit!
-          }
+          flushMissed();
 
           if (option.link !== null) {
             q(pushString(option.link.substr(1)));
@@ -425,16 +569,25 @@ export function parseMarkdown(file_contents: string) {
         tokenizer.parse(node.value as string).forEach(i => q(i));
         break;
       case "text":
-        let t = getText(node);
-        q(pushString(fixText(node), t));
-        if (emitOn === EmitOn.CLASSIC || (emitOn === EmitOn.END_OF_LINE && t.replace(/[\t\f\v ]+$/, "").endsWith('\n'))) {
-          while (missed_emits > 0) {
-            q(invokeFunction("rconcat"));
-            missed_emits -= 1;
+        {
+          const raw = getText(node);
+          const formatted = localizableText(node);
+          const { body, trailing } = splitTrailingNewlines(formatted);
+          const suffix = trailing + paragraphSuffix(node, parent);
+
+          if (body.trim().length > 0) {
+            const id = `${currentState}.text.${stateTextIndex}`;
+            registerMessage("state-text", id, body);
+            stateTextIndex += 1;
+
+            if (parseOptions.localize) {
+              compileMessageEmit(id, suffix, raw);
+            } else {
+              compileTemplateEmit(splitTemplate(body), suffix, raw);
+            }
+          } else {
+            compileTemplateEmit(splitTemplate(body), suffix, raw);
           }
-          q(invokeFunction("emit"));
-        } else {
-          missed_emits += 1;
         }
         break;
       default:
@@ -446,8 +599,15 @@ export function parseMarkdown(file_contents: string) {
   removePosition(root, { force: true });
   q(invokeFunction("exit")); // ensure we always exit at the end
 
+  if (parseOptions.localize) {
+    (qvmState as QuestMarkVMState).messages = Object.fromEntries(
+      messages.map((message) => [message.id, message.source]),
+    );
+  }
+
   return {
     parsedMDFile: root,
-    qvmState
+    qvmState,
+    messages
   }
 }

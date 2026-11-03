@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jorisvddonk.github.io/questmark/questmark-catalog.schema.json",
+  "title": "Questmark localization catalog",
+  "description": "A compile-time translation catalog produced by --extract-catalog.",
+  "type": "object",
+  "required": ["version", "locale", "messages"],
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Catalog format version."
+    },
+    "locale": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Locale code, for tooling."
+    },
+    "messages": {
+      "type": "object",
+      "description": "Map from message id to source and translation.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["source", "translation"],
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "The source text this translation belongs to."
+          },
+          "translation": {
+            "type": "string",
+            "description": "Translated text; empty means untranslated."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

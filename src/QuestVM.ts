@@ -2,6 +2,9 @@ import { EventEmitter } from "events";
 import { Stack, Functions } from "tzo";
 import { Context } from "tzo";
 import { VM, getStackParams } from "tzo";
+import { TzoVMState } from "tzo";
+import { Catalog, validateCatalog } from "./localization.js";
+import { formatTemplate, validatePlaceholders } from "./messageTemplate.js";
 
 export interface Choice {
   title: string,
@@ -11,6 +14,10 @@ export interface Choice {
 export class QuestVM extends VM {
   responses = [];
   eventBus = new EventEmitter();
+  /** Source templates for the currently loaded localized VMState. */
+  messages: Record<string, string> = {};
+  /** Optional runtime locale catalog. */
+  catalog: Catalog | null = null;
 
   constructor(emitFunction: (body: string | number) => void, getResponseFunction: (choices: Choice[]) => Promise<number>, additionalFunctions?: Functions) {
     super({}, {
@@ -19,6 +26,10 @@ export class QuestVM extends VM {
           const [str1] = getStackParams("emit", ["string | number"], stack) as [string | number];
           this.eventBus.emit('emit', str1);
           emitFunction(str1);
+        },
+        "message": (stack: Stack, context: Context) => {
+          const [id] = getStackParams("message", ["string"], stack) as [string];
+          stack.push(this.formatMessage(id, context));
         },
         "response": (stack: Stack, context: Context, vm: VM) => {
           const [num1, str1] = getStackParams("response", ["number", "string"], stack) as [number, string];
@@ -89,5 +100,46 @@ export class QuestVM extends VM {
         },
       }
     });
+  }
+
+  loadVMState(tzoVMState: TzoVMState & { messages?: Record<string, string> }) {
+    super.loadVMState(tzoVMState);
+    this.messages = tzoVMState.messages || {};
+  }
+
+  /**
+   * Set or clear the runtime locale catalog. The catalog can be swapped between
+   * turns; subsequent `message` opcodes use the new translation.
+   */
+  setCatalog(catalog: Catalog | null) {
+    if (catalog !== null) {
+      validateCatalog(catalog);
+    }
+    this.catalog = catalog;
+  }
+
+  /**
+   * Format one message id for the player. Falls back to the source template
+   * when the catalog has no translation; validates placeholders and source
+   * freshness when it does.
+   */
+  formatMessage(id: string, context: Context): string {
+    const source = this.messages[id];
+    if (source === undefined) {
+      throw new Error(`message: unknown message id "${id}"`);
+    }
+
+    const entry = this.catalog?.messages[id];
+    if (entry === undefined || entry.translation.trim().length === 0) {
+      return formatTemplate(source, context);
+    }
+    if (entry.source !== source) {
+      throw new Error(
+        `Catalog source mismatch for "${id}": expected ${JSON.stringify(entry.source)}, got ${JSON.stringify(source)}. Re-extract the catalog.`,
+      );
+    }
+
+    validatePlaceholders(id, source, entry.translation);
+    return formatTemplate(entry.translation, context);
   }
 }
