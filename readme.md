@@ -23,10 +23,11 @@ rendered as a [hosted website](https://jorisvddonk.github.io/questmark/):
   adventure. Every complete document has **Code** and **Play** tabs when the
   docs are served as a website.
 - **[How-to guides](docs/how-to/)** — play a document, compile it to bytecode,
-  debug it, organize a larger work, and embed Questmark in your own
+  localize it, debug it, organize a larger work, and embed Questmark in your own
   application.
-- **[Reference](docs/reference/)** — the language, the CLI, and the API,
-  described precisely and completely.
+- **[Reference](docs/reference/)** — the language, the CLI, the API, and the
+  [localization catalog format](docs/reference/localization.md), described
+  precisely and completely.
 - **[Explanation](docs/explanation/)** — why Questmark exists, how it works
   under the hood, the design principles and mental model, the trust model, how
   it is tested, open design problems, the wider questmark/Tzo ecosystem, and an
@@ -90,8 +91,8 @@ Open questions being worked on:
 
 - How should inline HTML be treated?
 - How can the compiler be modified to add custom directives and macros?
-- How can a document be translated to another language, whilst keeping the
-  scripting logic intact and easy to modify?
+- How should localization evolve beyond compile-time catalogs — ICU plurals and
+  gender, runtime language switching, paragraph-level messages?
 
 ## Other tools / libraries
 

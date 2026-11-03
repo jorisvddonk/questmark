@@ -45,9 +45,12 @@ formality rules that the source sentence did not encode.
    text to a locale. This only works for whole-string replacements and cannot
    reorder embedded values.
 
-**Current state:** no built-in localization. Documents are translated by
-compiling translated documents. The [FAQ](faq.md#can-i-translate-a-document)
-has the practical workaround.
+**Current state:** compile-time catalogs are implemented (see
+[how to localize a document](../how-to/localize-a-document.md) and the
+[localization reference](../reference/localization.md)). The open parts are
+ICU-style plurals/gender, runtime language switching, paragraph-level messages,
+and a literal-brace escape. The [FAQ](faq.md#can-i-translate-a-document) has the
+short answer.
 
 ## Inline HTML
 

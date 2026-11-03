@@ -133,3 +133,55 @@ test("CLI reports its version", async () => {
   const { stdout } = await runCli(["--version"]);
   assert.match(stdout.trim(), /^\d+\.\d+\.\d+$/);
 });
+
+test("CLI extracts a catalog and compiles a localized document", async () => {
+  const dir = tempDir();
+  try {
+    const input = path.join(dir, "document.md");
+    const catalogPath = path.join(dir, "fr.json");
+    const output = path.join(dir, "fr.vmstate.json");
+    fs.writeFileSync(
+      input,
+      `
+# QUESTMARK-OPTIONS-HEADER
+
+    {
+      "questmark-spec": "1.0",
+      "initial-state": "start",
+      "initial-context": { "name": "Ada" }
+    }
+
+# start
+
+Hello {{name}}, welcome.
+\`exit\`
+`
+    );
+
+    const extracted = await runCli(["--input", input, "--extract-catalog", catalogPath, "--locale", "fr"]);
+    assert.match(extracted.stdout, /Extracted 1 message/);
+
+    const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+    assert.equal(catalog.locale, "fr");
+    assert.equal(catalog.messages["start.text.0"].source, "Hello {{name}}, welcome.");
+    catalog.messages["start.text.0"].translation = "Bonjour {{name}}, bienvenue.";
+    fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2));
+
+    const fromSource = await runCli(["--input", input, "--catalog", catalogPath]);
+    assert.match(fromSource.stdout, /Bonjour Ada, bienvenue\./);
+
+    await runCli(["--input", input, "--catalog", catalogPath, "--output", output, "--no-run"]);
+    const state = JSON.parse(fs.readFileSync(output, "utf8"));
+    assert.ok(
+      state.programList.some(
+        (instruction) =>
+          instruction.type === "push-string-instruction" && instruction.value.startsWith("Bonjour ")
+      )
+    );
+
+    const fromCompiled = await runCli(["--input", output]);
+    assert.match(fromCompiled.stdout, /Bonjour Ada, bienvenue\./);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

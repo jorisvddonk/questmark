@@ -76,13 +76,16 @@ silent no-ops, so the document still plays in the
 
 ## Can I translate a document?
 
-There is no built-in localization. Text is compiled into the bytecode, so a
-translation means compiling a translated document. Keeping scripting logic in
-small backticked snippets and prose in plain paragraphs makes the text easier
-to extract and replace. The project lists localization as an open question in
-[Why Questmark?](why-questmark.md), and
-[open design problems](open-design-problems.md#localization) covers the
-trade-offs.
+Yes, with compile-time catalogs. Values in prose use `{{key}}` placeholders;
+`questmark --extract-catalog` produces a JSON catalog, translators fill in the
+`translation` fields, and `questmark --catalog` compiles a locale-specific
+VMState. The logic is written once and every locale is a build.
+
+The design is compile-time only: one build per locale, no runtime language
+switch, and no ICU plural/gender support yet. See
+[how to localize a document](../how-to/localize-a-document.md) and the
+[localization reference](../reference/localization.md). Remaining gaps are in
+[open design problems](open-design-problems.md#localization).
 
 ## Can I add my own directives or syntax?
 

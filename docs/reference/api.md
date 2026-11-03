@@ -8,15 +8,16 @@ package entry point (`import ... from "questmark"` / `require("questmark")`):
 import { parseMarkdown, QuestVM, NoLinkBehaviour } from "questmark";
 ```
 
-Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`) are
-exported as TypeScript types. The Tzo `Tokenizer` is not re-exported; import it
-from `tzo` if you need to tokenize code yourself.
+Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`,
+`LocalizableMessage`, `Catalog`) are exported as TypeScript types. The Tzo
+`Tokenizer` is not re-exported; import it from `tzo` if you need to tokenize
+code yourself.
 
-## `parseMarkdown(fileContents: string)`
+## `parseMarkdown(fileContents: string, options?: ParseOptions)`
 
 Compiles a Questmark document into a Tzo VM state.
 
-**Returns** `{ parsedMDFile, qvmState }`
+**Returns** `{ parsedMDFile, qvmState, messages }`
 
 - `parsedMDFile` — the compiler's document tree (`questmarkDocument` with
   `state` and `option` nodes). It is useful for tooling, link validation, and
@@ -24,10 +25,18 @@ Compiles a Questmark document into a Tzo VM state.
   keep their positions. See [document tree and VMState](document-tree.md).
 - `qvmState` — a `QuestMarkVMState` (a `TzoVMState` plus the parsed document),
   ready to load into a `QuestVM` or serialize to JSON.
+- `messages` — every translatable text unit, with a path-based ID, its source
+  text, and its kind. See [localization](localization.md#message-ids).
+
+`ParseOptions.translate` is an optional callback that returns a translation for
+a message, or `undefined` to keep the source. The compiler validates
+placeholders and applies the translation. `{{key}}` interpolation works without
+a catalog.
 
 **Throws** on malformed option headers (for example an unknown
-`no_link_behaviour`), invalid JSON in the header, or Tzo tokenizer errors.
-Unknown opcodes are *not* caught here; they fail when the VM loads the state.
+`no_link_behaviour`), invalid JSON in the header, Tzo tokenizer errors, or a
+translation with mismatched placeholders. Unknown opcodes are *not* caught here;
+they fail when the VM loads the state.
 
 ```js
 import { parseMarkdown } from "questmark";
@@ -187,6 +196,43 @@ inspects `Function.prototype.name` for brace handling.
 This site's [playground](../playground.md) is a complete browser host built on
 this bundle.
 
+## Localization
+
+These helpers implement the compile-time catalog design. The full format is in
+the [localization reference](localization.md).
+
+### `extractCatalog(markdown: string, locale = "en"): Catalog`
+
+Parses a document and returns a catalog with every message and an empty
+`translation`. Use it to bootstrap a locale.
+
+### `parseMarkdownForLocale(markdown, catalog, options?): ParseResult`
+
+Compiles with a catalog. Throws on a stale `source` or a placeholder mismatch.
+The result is the same shape as `parseMarkdown`.
+
+### `createCatalogTranslator(catalog, options?): (message) => string | undefined`
+
+Builds the translator used by `parseMarkdown`. `options.failOnStaleSource`
+defaults to `true`.
+
+### `missingTranslations(markdown, catalog): string[]`
+
+Returns IDs that are missing or have an empty translation.
+
+### `Catalog`
+
+```ts
+interface Catalog {
+  version: 1;
+  locale: string;
+  messages: Record<string, { source: string; translation: string }>;
+}
+```
+
+An empty translation falls back to the source text. Translations may reorder
+`{{key}}` placeholders but must keep the same set.
+
 ## Full usage example
 
 ```js
@@ -216,5 +262,7 @@ console.log(emitted.join(""));
 - [Language reference](language.md) — what the compiler accepts.
 - [Document tree and VMState](document-tree.md) — the shapes `parseMarkdown`
   returns.
+- [Localization reference](localization.md) — catalogs, placeholders, and
+  helpers.
 - [CLI reference](cli.md) — the command-line wrapper.
 - [How to embed Questmark](../how-to/use-the-library.md) — a longer guide.
