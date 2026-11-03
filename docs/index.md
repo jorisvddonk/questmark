@@ -59,7 +59,8 @@ splits documentation into four complementary modes of use:
   [branching dialogue](tutorials/branching-dialogue), and a
   [text adventure](tutorials/text-adventure).
 - **Trying to get something done?** The [how-to guides](how-to/play-a-document)
-  show you how to play, compile, debug, organize, and embed documents.
+  show you how to play, compile, localize, debug, organize, and embed
+  documents.
 - **Want to see it running?** Open the [playground](playground) and write or
   play a document right in your browser.
 - **Need a fact?** The [reference](reference/language) pages describe the

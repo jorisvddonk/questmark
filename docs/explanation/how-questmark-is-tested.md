@@ -79,6 +79,12 @@ The portable cases. They assert:
 Conformance does not use randomness. Randomness is host-dependent and would make
 a cross-runtime contract unstable.
 
+### Localization tests
+
+Interpolation, extraction, translation of state text/labels/post-option text,
+placeholder reordering, stale-source detection, placeholder mismatch errors,
+fallback behaviour, numeric label coercion, and the CLI extract/compile flow.
+
 ### CLI and browser bundle
 
 The CLI is tested by spawning it: compile, `--output`, JSON replay, HTTP input,
@@ -120,7 +126,9 @@ No test suite is a proof. This one does not cover:
   or adversarial input corpus.
 - **Cross-platform browser differences.** The bundle is tested in Node with a
   minimal DOM, not in every browser.
-- **Localization.** There is no built-in localization to test yet.
+- **Localization beyond compile-time catalogs.** The catalog pipeline is
+  covered in `test/localization.test.cjs`; runtime language switching and ICU
+  plural/gender handling are not implemented.
 
 The [limitations page](../reference/limitations.md) lists the functional gaps
 these tests do not close.

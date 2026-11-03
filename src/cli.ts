@@ -4,6 +4,7 @@ import fs from "fs";
 import { program } from "commander";
 import { parseMarkdown } from "./parseMarkdown.js";
 import { Choice, QuestVM } from "./QuestVM.js";
+import { Catalog, createCatalogTranslator, extractCatalog } from "./localization.js";
 import { TzoVMState } from "tzo";
 
 interface CliOptions {
@@ -11,6 +12,9 @@ interface CliOptions {
   input?: string;
   output?: string;
   run?: boolean;
+  catalog?: string;
+  extractCatalog?: string;
+  locale?: string;
 }
 
 program
@@ -18,6 +22,9 @@ program
   .option('-c, --clear', 'Clear console on each state')
   .option('--input <path>', "Load source .md or .json file from path. Path can be either from local filesystem, or via HTTP(S) URL")
   .option('--output <path>', "Emit VMState .json file")
+  .option('--catalog <path>', "Apply a compile-time localization catalog (JSON)")
+  .option('--extract-catalog <path>', "Write a localization catalog for the source document and exit")
+  .option('--locale <code>', "Locale metadata for --extract-catalog", "en")
   .option('--no-run', "Do not actually load and run the VM; just parse input and (optionally) emit output")
   .parse(process.argv);
 
@@ -26,6 +33,23 @@ const options = program.opts<CliOptions>();
 if (!options.input) {
   console.log("Missing input! Please specify an input file via --input");
   process.exit(1);
+}
+
+if (options.catalog && options.extractCatalog) {
+  console.error("--catalog and --extract-catalog cannot be combined");
+  process.exit(1);
+}
+
+function isSourcePath(path: string) {
+  return path.endsWith(".qmd") || path.endsWith(".qmd.html") || path.endsWith(".md") || path.endsWith(".md.html");
+}
+
+function readCatalog(path: string): Catalog {
+  try {
+    return JSON.parse(fs.readFileSync(path, "utf8")) as Catalog;
+  } catch (error) {
+    throw new Error(`Could not read catalog ${path}: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 async function load() {
@@ -42,27 +66,33 @@ async function load() {
 
 (async () => {
   const input_file = await load();
-  const vm = new QuestVM(body => {
-    process.stdout.write(`${body}`)
-  }, async (choices: Choice[]) => {
-    process.stdout.write("\n"); // add newline to make inquirer not overwrie any previously emitted text
-    const inquirer = (await import("inquirer")).default;
-    return inquirer.prompt([{
-      type: "select",
-      name: "selectedChoice",
-      message: " ",
-      choices: choices.map(c => ({ name: c.title, value: c.id }))
-    }]).then(answers => {
-      return answers.selectedChoice;
-    });
-  }, {});
+
+  if (options.extractCatalog) {
+    if (!isSourcePath(options.input)) {
+      throw new Error("--extract-catalog requires a .md / .qmd source document, not a compiled .json file");
+    }
+    const catalog = extractCatalog(input_file, options.locale || "en");
+    fs.writeFileSync(options.extractCatalog, JSON.stringify(catalog, null, 2));
+    console.log(`Extracted ${Object.keys(catalog.messages).length} message(s) to ${options.extractCatalog}`);
+    return;
+  }
+
+  let catalog: Catalog | undefined;
+  if (options.catalog) {
+    catalog = readCatalog(options.catalog);
+  }
 
   let vmState: TzoVMState = undefined;
 
   if (options.input.endsWith(".json")) {
+    if (catalog) {
+      throw new Error("--catalog applies to source documents; compile the document first or use a localized VMState");
+    }
     vmState = JSON.parse(input_file) as TzoVMState;
-  } else if (options.input.endsWith(".qmd") || options.input.endsWith(".qmd.html") || options.input.endsWith(".md") || options.input.endsWith(".md.html")) {
-    vmState = parseMarkdown(input_file).qvmState;
+  } else if (isSourcePath(options.input)) {
+    vmState = catalog
+      ? parseMarkdown(input_file, { translate: createCatalogTranslator(catalog) }).qvmState
+      : parseMarkdown(input_file).qvmState;
   } else {
     throw new Error("Program input file needs to have .json or .qmd / .qmd.html / .md / .md.html extension!")
   }
@@ -72,6 +102,21 @@ async function load() {
   }
 
   if (options.run) {
+    const vm = new QuestVM(body => {
+      process.stdout.write(`${body}`)
+    }, async (choices: Choice[]) => {
+      process.stdout.write("\n"); // add newline to make inquirer not overwrie any previously emitted text
+      const inquirer = (await import("inquirer")).default;
+      return inquirer.prompt([{
+        type: "select",
+        name: "selectedChoice",
+        message: " ",
+        choices: choices.map(c => ({ name: c.title, value: c.id }))
+      }]).then(answers => {
+        return answers.selectedChoice;
+      });
+    }, {});
+
     vm.loadVMState(vmState);
     vm.run();
   }

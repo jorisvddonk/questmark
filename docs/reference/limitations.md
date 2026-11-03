@@ -119,6 +119,19 @@ documentation.
   server-side rendering. Minifying it requires keeping function names because
   Tzo inspects `Function.prototype.name` for brace handling.
 
+## Localization
+
+- Localization is **compile-time**: one VMState per locale, no runtime language
+  switch. See the [localization reference](localization.md).
+- Placeholders (`{{key}}`) substitute context values directly. There is no ICU
+  MessageFormat: no plural, gender, select, or number/date formatting.
+- Messages are text-node granular; inline code splits a paragraph, so values
+  that translators must reorder should use `{{key}}`.
+- Message IDs are path-based; reordering paragraphs/options or renaming a state
+  changes IDs and requires re-extraction.
+- `{{` is reserved and has no literal escape yet.
+- Catalogs are trusted build-time input; a huge catalog can consume memory.
+
 ## Open design questions
 
 These are known gaps rather than incidental bugs. They are explained, with the
@@ -127,7 +140,7 @@ trade-offs and possible directions, in
 
 - inline HTML,
 - custom directives and macros,
-- localization,
+- localization beyond compile-time catalogs (ICU, runtime switching),
 - includes and modules,
 - exact save/restore,
 - versioning and compatibility.

@@ -515,6 +515,27 @@ Questmark emits text, not HTML. The host decides how to present it.
   paragraphs. They are not structural for Questmark.
 - Fenced `comment` blocks are skipped.
 
+### Interpolation
+
+Text in state prose, post-option text, and option labels may contain
+`{{key}}` placeholders:
+
+```markdown
+Hello {{name}}, you have {{coins}} coins.
+* Buy for {{price}} coins
+```
+
+The compiler turns a placeholder into a context lookup: `"key" getContext emit`
+in prose, or a value concatenated into an option label. The value must be a
+string or number, and a missing key throws the same error as `getContext`.
+
+Interpolation is useful on its own, and it is the mechanism that makes
+translations reorderable: a translated message may move placeholders, but must
+keep the same set. `{{` is reserved syntax; there is no escape for a literal
+`{{` yet.
+
+See [localization](localization.md) for catalogs and message IDs.
+
 ### Formatting flags
 
 **`whitespace: "retain"`** uses the original source substring for each text
@@ -631,6 +652,7 @@ You turn back towards the lit windows of the town.
 - [Cheat sheet](cheatsheet.md) — the same information on one page.
 - [Document tree and VMState](document-tree.md) — the shapes `parseMarkdown`
   returns.
+- [Localization](localization.md) — catalogs, placeholders, and message IDs.
 - [Limitations and compatibility](limitations.md) — known constraints.
 - [API reference](api.md) — `parseMarkdown`, `QuestVM`, and the compiled state.
 - [Cookbook: common patterns](../how-to/recipes.md) — copy-paste recipes.
