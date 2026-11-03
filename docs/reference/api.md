@@ -8,9 +8,9 @@ package entry point (`import ... from "questmark"` / `require("questmark")`):
 import { parseMarkdown, QuestVM, NoLinkBehaviour } from "questmark";
 ```
 
-Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`) are
-exported as TypeScript types. The Tzo `Tokenizer` is not re-exported; import it
-from `tzo` if you need to tokenize code yourself.
+Type names (`Choice`, `Directive`, `OptionNode`, `QuestMarkVMState`,
+`StructuralDifference`) are exported as TypeScript types. The Tzo `Tokenizer`
+is not re-exported; import it from `tzo` if you need to tokenize code yourself.
 
 ## `parseMarkdown(fileContents: string)`
 
@@ -187,6 +187,26 @@ inspects `Function.prototype.name` for brace handling.
 This site's [playground](../playground.md) is a complete browser host built on
 this bundle.
 
+## `compareDocumentStructure(sourceMarkdown, translatedMarkdown)`
+
+Checks that a translated document has the same state graph, option links,
+directives, code, and behavioural header values as its source. Prose, labels,
+post-option text, comments, and string context values may differ.
+
+**Returns** `StructuralDifference[]`:
+
+```ts
+interface StructuralDifference {
+  path: string;    // "state[0].option[1].link"
+  message: string; // human-readable difference
+}
+```
+
+An empty array means parity. Parsing errors are thrown.
+
+See the [translation parity reference](translation-parity.md) for the exact
+rules and the CLI `--compare` flow.
+
 ## Full usage example
 
 ```js
@@ -216,5 +236,7 @@ console.log(emitted.join(""));
 - [Language reference](language.md) — what the compiler accepts.
 - [Document tree and VMState](document-tree.md) — the shapes `parseMarkdown`
   returns.
+- [Translation parity](translation-parity.md) — structural comparison for
+  parallel translated documents.
 - [CLI reference](cli.md) — the command-line wrapper.
 - [How to embed Questmark](../how-to/use-the-library.md) — a longer guide.

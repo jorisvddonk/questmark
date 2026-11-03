@@ -119,6 +119,21 @@ documentation.
   server-side rendering. Minifying it requires keeping function names because
   Tzo inspects `Function.prototype.name` for brace handling.
 
+## Localization
+
+- Localization uses **parallel translated documents** plus a structural parity
+  checker (`--compare` / `compareDocumentStructure`). See the
+  [translation parity reference](translation-parity.md).
+- Logic is duplicated per locale. Every state, link, option, directive, and
+  code span must be mirrored; the checker catches drift, not maintenance.
+- Each locale is a separate VMState. There is no runtime language switch and no
+  catalog format.
+- The checker compares structure and code sequence, not prose layout. Moving a
+  code span between paragraphs can still change emission order; review prose
+  changes.
+- String context values may differ; numeric values must match.
+- No semantic validation: it cannot tell whether a translation is accurate.
+
 ## Open design questions
 
 These are known gaps rather than incidental bugs. They are explained, with the
@@ -127,7 +142,7 @@ trade-offs and possible directions, in
 
 - inline HTML,
 - custom directives and macros,
-- localization,
+- localization beyond parallel documents (catalogs, runtime switching),
 - includes and modules,
 - exact save/restore,
 - versioning and compatibility.

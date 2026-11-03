@@ -133,3 +133,30 @@ test("CLI reports its version", async () => {
   const { stdout } = await runCli(["--version"]);
   assert.match(stdout.trim(), /^\d+\.\d+\.\d+$/);
 });
+
+test("CLI compares the structure of a translated document", async () => {
+  const fixtures = path.join(__dirname, "fixtures", "translations");
+  const source = path.join(fixtures, "en.md");
+  const translated = path.join(fixtures, "fr.md");
+
+  const ok = await runCli(["--input", source, "--compare", translated]);
+  assert.match(ok.stdout, /Translation structure matches/);
+
+  const dir = tempDir();
+  try {
+    const broken = path.join(dir, "fr.md");
+    fs.writeFileSync(
+      broken,
+      fs.readFileSync(translated, "utf8").replace("[Partir](#end)", "[Partir](#start)")
+    );
+
+    await assert.rejects(runCli(["--input", source, "--compare", broken]), (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /state\[0\]\.option\[1\]\.link/);
+      assert.match(error.stderr, /structural difference/);
+      return true;
+    });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

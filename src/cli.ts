@@ -5,12 +5,14 @@ import { program } from "commander";
 import { parseMarkdown } from "./parseMarkdown.js";
 import { Choice, QuestVM } from "./QuestVM.js";
 import { TzoVMState } from "tzo";
+import { compareDocumentStructure } from "./translationCheck.js";
 
 interface CliOptions {
   clear?: boolean;
   input?: string;
   output?: string;
   run?: boolean;
+  compare?: string;
 }
 
 program
@@ -18,6 +20,7 @@ program
   .option('-c, --clear', 'Clear console on each state')
   .option('--input <path>', "Load source .md or .json file from path. Path can be either from local filesystem, or via HTTP(S) URL")
   .option('--output <path>', "Emit VMState .json file")
+  .option('--compare <path>', "Check that a translated document has the same structure as the input, then exit")
   .option('--no-run', "Do not actually load and run the VM; just parse input and (optionally) emit output")
   .parse(process.argv);
 
@@ -26,6 +29,10 @@ const options = program.opts<CliOptions>();
 if (!options.input) {
   console.log("Missing input! Please specify an input file via --input");
   process.exit(1);
+}
+
+function isSourcePath(path: string) {
+  return path.endsWith(".qmd") || path.endsWith(".qmd.html") || path.endsWith(".md") || path.endsWith(".md.html");
 }
 
 async function load() {
@@ -42,6 +49,24 @@ async function load() {
 
 (async () => {
   const input_file = await load();
+
+  if (options.compare) {
+    if (!isSourcePath(options.input)) {
+      throw new Error("--compare requires a .md / .qmd source document as --input");
+    }
+    const translated = fs.readFileSync(options.compare, "utf8");
+    const differences = compareDocumentStructure(input_file, translated);
+    if (differences.length > 0) {
+      for (const difference of differences) {
+        console.error(`${difference.path}: ${difference.message}`);
+      }
+      console.error(`\n${differences.length} structural difference(s)`);
+      process.exit(1);
+    }
+    console.log("Translation structure matches");
+    return;
+  }
+
   const vm = new QuestVM(body => {
     process.stdout.write(`${body}`)
   }, async (choices: Choice[]) => {

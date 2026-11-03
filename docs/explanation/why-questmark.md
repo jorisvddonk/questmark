@@ -65,8 +65,9 @@ Open questions the project is still working through:
 
 - How should inline HTML be treated?
 - How can the compiler be extended with custom directives and macros?
-- How can a document be translated to another language while keeping its
-  scripting logic intact and easy to modify?
+- How should localization evolve beyond parallel translated documents — shared
+  catalogs, runtime switching, and fewer duplicated logic changes?
+  See [the parallel-documents design](localization-parallel-design.md).
 
 [Open design problems](open-design-problems.md) explains why these are hard,
 what options exist, and where the project currently stands. It also covers
