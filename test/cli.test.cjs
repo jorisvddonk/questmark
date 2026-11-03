@@ -133,3 +133,58 @@ test("CLI reports its version", async () => {
   const { stdout } = await runCli(["--version"]);
   assert.match(stdout.trim(), /^\d+\.\d+\.\d+$/);
 });
+
+test("CLI extracts a catalog, compiles runtime messages, and localizes at play time", async () => {
+  const dir = tempDir();
+  try {
+    const input = path.join(dir, "document.md");
+    const catalogPath = path.join(dir, "fr.json");
+    const output = path.join(dir, "localized.vmstate.json");
+    fs.writeFileSync(
+      input,
+      `
+# QUESTMARK-OPTIONS-HEADER
+
+    {
+      "questmark-spec": "1.0",
+      "initial-state": "start",
+      "initial-context": { "name": "Ada" }
+    }
+
+# start
+
+Hello {{name}}, welcome.
+\`exit\`
+`
+    );
+
+    const extracted = await runCli(["--input", input, "--extract-catalog", catalogPath, "--locale", "fr"]);
+    assert.match(extracted.stdout, /Extracted 1 message/);
+
+    const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+    assert.equal(catalog.messages["start.text.0"].source, "Hello {{name}}, welcome.");
+    catalog.messages["start.text.0"].translation = "Bonjour {{name}}, bienvenue.";
+    fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2));
+
+    const fromSource = await runCli(["--input", input, "--catalog", catalogPath]);
+    assert.match(fromSource.stdout, /Bonjour Ada, bienvenue\./);
+
+    await runCli(["--input", input, "--localize", "--output", output, "--no-run"]);
+    const state = JSON.parse(fs.readFileSync(output, "utf8"));
+    assert.equal(state.messages["start.text.0"], "Hello {{name}}, welcome.");
+    assert.ok(
+      state.programList.some(
+        (instruction) =>
+          instruction.type === "invoke-function-instruction" && instruction.functionName === "message"
+      )
+    );
+
+    const fromCompiledSource = await runCli(["--input", output]);
+    assert.match(fromCompiledSource.stdout, /Hello Ada, welcome\./);
+
+    const fromCompiledFrench = await runCli(["--input", output, "--catalog", catalogPath]);
+    assert.match(fromCompiledFrench.stdout, /Bonjour Ada, bienvenue\./);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

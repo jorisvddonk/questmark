@@ -57,7 +57,7 @@ Another state.
 | --- | --- | --- |
 | directive | before label | `@once` |
 | precondition | before label | must leave one positive number |
-| label | — | plain text only |
+| label | — | plain text, optional `{{key}}` placeholders and a link |
 | link | inside label | `[Label](#state)` |
 | effect | after label | runs on choice |
 | post-option text | after the line | emitted on choice |
@@ -79,6 +79,17 @@ Another state.
 **Operand order:** the top of the stack is the first operand. In
 `x y op`, the result is `y op x`. So `0 "gold" getContext gt` is
 `gold > 0`.
+
+## Interpolation
+
+| Syntax | Meaning |
+| --- | --- |
+| `{{name}}` | Emit the context value `name`. |
+| `{{coins}}` in a label | Build the value into the menu label. |
+
+Works in state text, post-option text, and option labels. Runtime-localized
+builds keep placeholders in message templates so translations can reorder them.
+`{{` is reserved; see [runtime localization](runtime-localization.md).
 
 ## Jumps and blocks
 

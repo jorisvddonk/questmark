@@ -131,9 +131,10 @@ embed assets in the document. The language deliberately has no asset system.
 
 ## Localization
 
-The text is compiled into the bytecode, so the host cannot swap strings at
-runtime without a translation layer. This is a known open problem; see
-[open design problems](open-design-problems.md#localization).
+Localization can happen at runtime: localized builds emit `message` references,
+and the VM formats them through a catalog installed with `setCatalog`. The text
+contract is unchanged; the host still receives strings. See
+[how to localize at runtime](../how-to/localize-at-runtime.md).
 
 ## See also
 

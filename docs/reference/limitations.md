@@ -119,6 +119,26 @@ documentation.
   server-side rendering. Minifying it requires keeping function names because
   Tzo inspects `Function.prototype.name` for brace handling.
 
+## Localization
+
+- Runtime catalogs are implemented: compile with `--localize`, load a catalog
+  with `QuestVM.setCatalog`, and switch catalogs between turns. See
+  [runtime localization](runtime-localization.md).
+- Localized builds use the `message` opcode. Every runtime that plays them must
+  implement it; non-localized builds are unaffected.
+- Placeholders (`{{key}}`) are direct substitution. There is no ICU
+  MessageFormat: no plural, gender, select, or number/date formatting.
+- Messages are text-node granular; inline code splits a paragraph. Use
+  `{{key}}` for values translators must reorder.
+- Message IDs are path-based; reordering paragraphs/options or renaming a state
+  changes IDs and requires re-extraction.
+- `{{` is reserved and has no literal escape yet.
+- Catalog validation happens at runtime (and can be done ahead of time with
+  `validateCatalogForDocument`). A malformed catalog fails at the message where
+  it is used.
+- Catalogs and compiled VMStates are trusted input; a huge catalog/state can
+  consume memory.
+
 ## Open design questions
 
 These are known gaps rather than incidental bugs. They are explained, with the
@@ -127,7 +147,7 @@ trade-offs and possible directions, in
 
 - inline HTML,
 - custom directives and macros,
-- localization,
+- localization beyond runtime catalogs (ICU, paragraph-level messages),
 - includes and modules,
 - exact save/restore,
 - versioning and compatibility.
