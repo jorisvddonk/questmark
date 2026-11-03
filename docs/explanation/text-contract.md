@@ -131,9 +131,10 @@ embed assets in the document. The language deliberately has no asset system.
 
 ## Localization
 
-The text is compiled into the bytecode, so the host cannot swap strings at
-runtime without a translation layer. This is a known open problem; see
-[open design problems](open-design-problems.md#localization).
+Localization uses separate documents per locale and a structural parity
+checker. The text contract is unchanged: each localized document compiles to
+its own VMState and emits text normally. See
+[how to translate with parallel documents](../how-to/translate-with-parallel-documents.md).
 
 ## See also
 

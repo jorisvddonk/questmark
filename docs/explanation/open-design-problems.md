@@ -45,9 +45,13 @@ formality rules that the source sentence did not encode.
    text to a locale. This only works for whole-string replacements and cannot
    reorder embedded values.
 
-**Current state:** no built-in localization. Documents are translated by
-compiling translated documents. The [FAQ](faq.md#can-i-translate-a-document)
-has the practical workaround.
+**Current state:** parallel translated documents with a structural parity
+checker are implemented (see
+[how to translate with parallel documents](../how-to/translate-with-parallel-documents.md)
+and the [translation parity reference](../reference/translation-parity.md)).
+Catalog-based alternatives are under review. The open parts are avoiding logic
+duplication, runtime switching, ICU-style plurals/gender, and paragraph-level
+messages. The [FAQ](faq.md#can-i-translate-a-document) has the short answer.
 
 ## Inline HTML
 

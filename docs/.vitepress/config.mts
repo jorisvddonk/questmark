@@ -59,6 +59,7 @@ export default defineConfig({
         items: [
           { text: "Play a document", link: "/how-to/play-a-document" },
           { text: "Compile to bytecode", link: "/how-to/compile-to-bytecode" },
+          { text: "Translate with parallel documents", link: "/how-to/translate-with-parallel-documents" },
           { text: "Debug a document", link: "/how-to/debug-a-document" },
           { text: "Organize a larger document", link: "/how-to/organize-a-document" },
           { text: "Validate documents in CI", link: "/how-to/validate-in-ci" },
@@ -77,6 +78,7 @@ export default defineConfig({
           { text: "Cheat sheet", link: "/reference/cheatsheet" },
           { text: "Language reference", link: "/reference/language" },
           { text: "Document tree and VMState", link: "/reference/document-tree" },
+          { text: "Translation parity", link: "/reference/translation-parity" },
           { text: "CLI reference", link: "/reference/cli" },
           { text: "API reference", link: "/reference/api" },
           { text: "Limitations and compatibility", link: "/reference/limitations" },
@@ -95,6 +97,7 @@ export default defineConfig({
           { text: "The trust model", link: "/explanation/trust-model" },
           { text: "How Questmark is tested", link: "/explanation/how-questmark-is-tested" },
           { text: "Open design problems", link: "/explanation/open-design-problems" },
+          { text: "Parallel-documents design", link: "/explanation/localization-parallel-design" },
           { text: "Questmark and Tzo ecosystem", link: "/explanation/ecosystem" },
           { text: "FAQ and comparisons", link: "/explanation/faq" },
         ],

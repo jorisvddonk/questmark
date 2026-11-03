@@ -20,11 +20,15 @@ package with `npx questmark [options]`.
 | `-c, --clear` | Clear the console on each state. *(Declared but not yet implemented.)* |
 | `--input <path>` | Load a source `.md`, `.qmd`, `.qmd.html`, `.md.html`, or `.json` file. `path` can be a local filesystem path or an `http(s)://` URL. |
 | `--output <path>` | Emit the compiled VMState as JSON to `path`. |
+| `--compare <path>` | Check that a translated document has the same structure as `--input`, then exit. |
 | `--no-run` | Do not interpret the input; only parse and (optionally) emit output. |
 | `-h, --help` | Display help. |
 
 `--input` is required. Without it the CLI prints `Missing input!` and exits
 with status 1.
+
+`--compare` requires a source `.md`/`.qmd` `--input` and a local translated
+path. It exits `0` on structural parity and `1` with a list of differences.
 
 ## Examples
 
@@ -45,6 +49,14 @@ Play a compiled document:
 ```bash
 questmark --input vmstate.json
 ```
+
+Check a translated document's structure:
+
+```bash
+questmark --input story.en.md --compare story.fr.md
+```
+
+See [translate with parallel documents](../how-to/translate-with-parallel-documents.md).
 
 Play a document hosted online:
 

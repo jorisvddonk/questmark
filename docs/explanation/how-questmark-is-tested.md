@@ -79,6 +79,13 @@ The portable cases. They assert:
 Conformance does not use randomness. Randomness is host-dependent and would make
 a cross-runtime contract unstable.
 
+### Localization tests
+
+Parallel translated documents are compared for state/option structure, links,
+directives, code, header flags, and context shape. The tests cover passing
+pairs and every common drift (link, code, option count, state name, context key,
+numeric value, flags, directive, initial state), plus the CLI `--compare` flow.
+
 ### CLI and browser bundle
 
 The CLI is tested by spawning it: compile, `--output`, JSON replay, HTTP input,
@@ -120,7 +127,8 @@ No test suite is a proof. This one does not cover:
   or adversarial input corpus.
 - **Cross-platform browser differences.** The bundle is tested in Node with a
   minimal DOM, not in every browser.
-- **Localization.** There is no built-in localization to test yet.
+- **Localization.** Parallel translated documents are checked structurally in
+  `test/translation-parity.test.cjs`; semantic accuracy is not tested.
 
 The [limitations page](../reference/limitations.md) lists the functional gaps
 these tests do not close.

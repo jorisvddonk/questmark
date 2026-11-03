@@ -76,13 +76,20 @@ silent no-ops, so the document still plays in the
 
 ## Can I translate a document?
 
-There is no built-in localization. Text is compiled into the bytecode, so a
-translation means compiling a translated document. Keeping scripting logic in
-small backticked snippets and prose in plain paragraphs makes the text easier
-to extract and replace. The project lists localization as an open question in
-[Why Questmark?](why-questmark.md), and
-[open design problems](open-design-problems.md#localization) covers the
-trade-offs.
+Yes, with parallel translated documents. Keep one full document per locale,
+translate prose/labels/post-option text, and leave states, links, options,
+directives, code, and numeric context values alone. Check the pair with:
+
+```bash
+npx questmark --input story.en.md --compare story.fr.md
+```
+
+The checker fails on graph/code drift and exits non-zero, so it works in CI.
+Each locale is compiled separately. There is no runtime language switch or
+catalog. See
+[how to translate with parallel documents](../how-to/translate-with-parallel-documents.md).
+Remaining gaps are in
+[open design problems](open-design-problems.md#localization).
 
 ## Can I add my own directives or syntax?
 
